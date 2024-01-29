@@ -14,19 +14,43 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Member member = new Member();
+            // 비영속
+//            Member member = new Member();
+//            member.setId(100L);
+//            member.setName("hello블라블라");
+//
+//            // 영속
+//            System.out.println("===Before===");
+//            em.persist(member);
+//            System.out.println("===After===");
 
-            member.setId(2L);
-            member.setName("helloB");
+//            Member findMember = em.find(Member.class, 100L);
 
-            em.persist(member);
+//            Member findMember2 = em.find(Member.class, 2L);
+//            Member findMember3 = em.find(Member.class, 2L);
+//
+//            System.out.println("result: " + (findMember2 == findMember3));
+
+//            Member member1 = new Member(4L, "hello4");
+//            Member member2 = new Member(5L, "hello5");
+//
+//            em.persist(member1);
+//            em.persist(member2);
+//
+//            System.out.println("=================================");
+
+            Member member5 = em.find(Member.class, 4L);
+            member5.setName("em.persist() 를 선언해줘야 하는거 아니야?");
+
+//            em.persist(member5);
 
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
         } finally {
             em.close();
-            emf.close();
         }
+
+        emf.close();
     }
 }
