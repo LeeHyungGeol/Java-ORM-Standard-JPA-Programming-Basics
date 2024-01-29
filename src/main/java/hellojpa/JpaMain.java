@@ -2,6 +2,8 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 public class JpaMain {
 
     public static void main(String[] args) {
@@ -39,12 +41,27 @@ public class JpaMain {
 //
 //            System.out.println("=================================");
 
-            Member member5 = em.find(Member.class, 4L);
-            member5.setName("em.persist() 를 선언해줘야 하는거 아니야?");
+//            Member member5 = em.find(Member.class, 4L);
+//            member5.setName("em.persist() 를 선언해줘야 하는거 아니야?");
 
 //            em.persist(member5);
 
-            tx.commit();
+            Member member1 = new Member(10L, "hello4");
+            Member member2 = new Member(11L, "hello5");
+            Member member3 = new Member(12L, "hello5");
+//
+            em.persist(member1);
+            em.persist(member2);
+            em.persist(member3);
+
+//중간에 JPQL 실행
+            List<Member> members = em.createQuery("select m from Member m", Member.class).getResultList();;
+
+            for (Member member : members) {
+                System.out.println(member.getName());
+            }
+
+//            tx.commit();
         } catch (Exception e) {
             tx.rollback();
         } finally {

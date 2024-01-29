@@ -303,6 +303,54 @@ tx.commit();
 - 마치 Java Collection 에서 하는 것 처럼 update 쿼리를 직접 날리지 않아도 ***DB 값이 변경된 것 감지(Dirty Checking)*** 해서 UPDATE 쿼리를 날려준다.
 - **transaction 이 commit 하는 시점**에 값 변경을 감지하고 DB 에 반영을 해준다.
 
+## 플러시(flush)
 
+**플러시(flush): 영속성 컨텍스트의 변경내용을 DB 에 반영** 
+- insert, delete, update sql 들을 DB 에 반영하는 것
+- 영속성 컨텍스트의 변경사항과 DB 를 맞추는 작업
 
+플러시는!
+1. **영속성 컨텍스트를 비우지 않음**
+2. **영속성 컨텍스트의 변경내용을 데이터베이스에 동기화**
+3. **트랜잭션이라는 작업 단위가 중요 -> 커밋 직전에만 동기화 하면 됨**
+
+**플러시 발생**
+- 변경 감지
+- 수정된 엔티티 쓰기 지연 SQL 저장소에 등록
+- 쓰기 지연 SQL 저장소의 쿼리를 데이터베이스에 전송 (등록, 수정, 삭제 쿼리)
+
+영속성 컨텍스트를 플러시하는 방법
+
+- em.flush() - 직접 호출
+- 트랜잭션 커밋 - 플러시 자동 호출 
+- JPQL 쿼리 실행 - 플러시 자동 호출
+
+**flush 를 한다고 해서 1차 캐시가 삭제되는 것은 아니다.** 단지, 변경 감지를 하고, 쓰기 지연 (write-behind) 저장소에 있는 sql 들을 DB 에 전송하는 역할을 한다.
+
+**JPQL 쿼리 실행시 플러시가 자동 으로 호출되는 이유**
+
+```java
+em.persist(memberA);
+em.persist(memberB);
+em.persist(memberC);
+
+//중간에 JPQL 실행
+query = em.createQuery("select m from Member m", Member.class);
+List<Member> members= query.getResultList();
+```
+
+- em.persist() 까지는 영속성 컨텍스트에 저장한 상태이지, DB 에 저장한 상태가 아니다.
+- 그래서 원래는 조회가 안되는 상태다. DB 에서 가져올 것이 없는 상태이기 때문이다.
+- 이런 상황에서 문제가 발생할 수 있기 때문에, JPQL 실행시에 무조건 flush() 가 자동 호출된다.
+- 식별자를 기준으로 조회하는 find() 메서드를 호출할 때는 flush() 가 실행되지 않는다.
+
+**플러시 모드 옵션**
+`em.setFlushMode(FlushModeType.COMMIT)`
+- 이렇게 플러시 모드 설정
+
+`FlushModeType.AUTO`
+- 커밋이나 쿼리를 실행할 때 플러시 (기본값)
+
+`FlushModeType.COMMIT`
+- 커밋할 때만 플러시
 
