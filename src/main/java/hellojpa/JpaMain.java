@@ -46,22 +46,38 @@ public class JpaMain {
 
 //            em.persist(member5);
 
-            Member member1 = new Member(10L, "hello4");
-            Member member2 = new Member(11L, "hello5");
-            Member member3 = new Member(12L, "hello5");
+//            Member member1 = new Member(10L, "hello4");
+//            Member member2 = new Member(11L, "hello5");
+//            Member member3 = new Member(12L, "hello5");
+////
+//            em.persist(member1);
+//            em.persist(member2);
+//            em.persist(member3);
 //
-            em.persist(member1);
-            em.persist(member2);
-            em.persist(member3);
+////중간에 JPQL 실행
+//            List<Member> members = em.createQuery("select m from Member m", Member.class).getResultList();;
+//
+//            for (Member member : members) {
+//                System.out.println(member.getName());
+//            }
 
-//중간에 JPQL 실행
-            List<Member> members = em.createQuery("select m from Member m", Member.class).getResultList();;
-
-            for (Member member : members) {
-                System.out.println(member.getName());
-            }
-
+//            Member member = em.find(Member.class, 1L);
+//            member.setName("AAAAAA");
+//
+//            em.detach(member);
+//
+//            System.out.println("===============");
+//
 //            tx.commit();
+
+            Member member = em.find(Member.class, 1L);
+            member.setName("AAAAAA");
+
+            em.clear();
+
+            Member member2 = em.find(Member.class, 2L);
+
+            tx.commit();
         } catch (Exception e) {
             tx.rollback();
         } finally {

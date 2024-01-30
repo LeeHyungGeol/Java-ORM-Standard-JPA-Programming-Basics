@@ -342,7 +342,7 @@ List<Member> members= query.getResultList();
 - em.persist() 까지는 영속성 컨텍스트에 저장한 상태이지, DB 에 저장한 상태가 아니다.
 - 그래서 원래는 조회가 안되는 상태다. DB 에서 가져올 것이 없는 상태이기 때문이다.
 - 이런 상황에서 문제가 발생할 수 있기 때문에, JPQL 실행시에 무조건 flush() 가 자동 호출된다.
-- 식별자를 기준으로 조회하는 find() 메서드를 호출할 때는 flush() 가 실행되지 않는다.
+- **식별자를 기준으로 조회하는 find() 메서드를 호출할 때는 flush() 가 실행 되지 않는다.**
 
 **플러시 모드 옵션**
 `em.setFlushMode(FlushModeType.COMMIT)`
@@ -353,4 +353,85 @@ List<Member> members= query.getResultList();
 
 `FlushModeType.COMMIT`
 - 커밋할 때만 플러시
+
+**flush : 영속성 컨텍스트에 있는 엔티티 정보를 DB에 동기화하는 작업. 아직 트랜잭션 commit이 안돼서 에러 발생시 롤백 가능**
+
+**transaction commmit : transaction commit 이후에는 DB에 동기화된 정보가 영구히 반영되어 롤백을 할 수 없다.**
+
+**트랜잭션 커밋과 플러시가 일어나는 시점**
+
+- 보통 Repository를 만들 때 Spring-Data-Jpa의 JpaRepository 인터페이스를 상속받는다.
+- 이때 JpaRepository 의 기본 구현체는 SimpleJpaRepository 이며 SimpleJpaRepository의 클래스에는 @Transactional 어노테이션이 붙어 있으므로 해당 클래스에 있는 메소드들은 모두 트랜잭션에 걸리게 된다.
+- 해당 클래스에 있는 메소드들이 모두 트랜젝션에 걸린다는 것은 다시말해, 클래스의 메소드가 성공적으로 return 하게 되면 Transaction Commit 도 이루어지게 된다.
+- JpaRepository 인터페이스 상속을 받지 않더라고 클래스에 @Transactional 어노테이션을 붙이게 되면 해당 클래스의 메소드 실행 return 후 Transaction Commit 이 실행된다.
+
+- [참조] https://velog.io/@eeheaven/JPA-TIL-%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84-%EB%A7%A4%ED%95%91
+
+## 준영속(detach)
+
+- 영속 -> 준영속
+- 영속 상태(영속성 컨텍스트(안의 1차캐시)에 저장된 상태)의 엔티티가 영속성 컨텍스트에서 분리(detached) 
+- 영속성 컨텍스트가 제공하는 기능을 사용 못함
+
+**준영속 상태로 만드는 방법**
+- `em.detach(entity)`: 특정 엔티티만 준영속 상태로 전환
+- `em.clear()`: 영속성 컨텍스트를 완전히 초기화
+- `em.close()`: 영속성 컨텍스트를 종료
+
+```java
+Member member = em.find(Member.class, 1L);
+member.setName("AAAAAA");
+
+em.detach(member);
+
+tx.commit();
+```
+
+```
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.name 
+    from
+        Member m1_0 
+    where
+        m1_0.id=?
+===============
+```
+
+- 영속 상태에서 준영속 상태가 되었기 때문에 update query 가 날라가지 않는다. 
+
+```java
+Member member = em.find(Member.class, 1L);
+member.setName("AAAAAA");
+
+em.clear();
+
+Member member2 = em.find(Member.class, 2L);
+
+tx.commit();
+```
+
+```
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.name 
+    from
+        Member m1_0 
+    where
+        m1_0.id=?
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.name 
+    from
+        Member m1_0 
+    where
+        m1_0.id=?
+```
+
+- 영속석 컨택스트(안의 1차 캐시)를 완전히 지워버렸기 때문에 select query 가 2번 날라가게 된다.
+
+
 
