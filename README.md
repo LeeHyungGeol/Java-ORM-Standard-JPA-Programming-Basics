@@ -140,7 +140,7 @@ HAVING, JOIN 지원
 - JPQL을 한마디로 정의하면 ***객체 지향 SQL***
 - JPQL은 뒤에서 아주 자세히 다룸
 
-# 영속성 관리 
+# 2. 영속성 관리 
 
 ## 영속성 컨텍스트
 
@@ -432,6 +432,62 @@ Hibernate:
 ```
 
 - 영속석 컨택스트(안의 1차 캐시)를 완전히 지워버렸기 때문에 select query 가 2번 날라가게 된다.
+
+
+---
+
+# 3. 엔티티 매핑
+
+1. 영속성 컨텍스트, JPA 내부 동작 방식과 같은 **JPA 가 내부적으로 어떤 메커니즘으로 동작하는지 그런 메커니즘적인 측면**
+2. **실제 설계적인 측면, 객체랑 관계형 데이터베이스(RDB)를 어떻게 mapping 을 해서 쓰는지에** 대한 정적인 측면
+
+**엔티티 매핑 소개**
+- 객체와 테이블 매핑: `@Entity`, `@Table` 
+- 필드와 컬럼 매핑: `@Column`
+- 기본 키 매핑: `@Id`
+- 연관관계 매핑: `@ManyToOne`, `@JoinColumn`
+
+## 객체와 테이블 매핑
+
+### @Entity
+- **@Entity가 붙은 클래스는 JPA가 관리, 엔티티라 한다.**
+- JPA를 사용해서 테이블과 매핑할 클래스는 **@Entity** 필수
+
+주의
+- 기본 생성자 필수(파라미터가 없는 public 또는 protected 생성자)
+- final 클래스, enum, interface, inner 클래스 사용 X
+- 저장할 필드에 final 사용 X
+
+#### @Entity 속성 정리
+
+```java
+import jakarta.persistence.Entity;
+
+@Entity(name = "Member")
+```
+
+**속성: name**
+- **JPA에서 사용할 엔티티 이름을 지정한다.**
+- 기본값: 클래스 이름을 그대로 사용(예: Member) 
+- 같은 클래스 이름이 없으면 가급적 기본값을 사용한다. (기본값을 사용 안하면 헷갈리는 경우가 많다.)
+
+### @Table
+
+```java
+import jakarta.persistence.Table;
+
+@Table(name = "Mbr")
+```
+
+#### @Table 속성 정리
+- @Table은 엔티티와 매핑할 테이블 지정
+
+| 속성                      | 기능                    | 기본값        |
+|-------------------------|-----------------------|------------|
+| name                    | 매핑할 테이블 이름            | 엔티티 이름을 사용 |
+| catalog                 | 데이터베이스 catalog 매핑     |            |
+| schema                  | 데이터베이스 schema 매핑      |            |
+| uniqueConstraints (DDL) | DDL 생성 시에 유니크 제약 조건 생성 |            |
 
 
 

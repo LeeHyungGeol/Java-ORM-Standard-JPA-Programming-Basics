@@ -2,8 +2,10 @@ package hellojpa;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-@Entity
+@Entity(name = "Member")
+@Table(name = "Mbr")
 public class Member {
     @Id
     private Long id;
