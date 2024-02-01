@@ -944,3 +944,32 @@ Hibernate:
 - 미래까지 이 조건을 만족하는 자연키는 찾기 어렵다. 대리키(대체키)를 사용하자.
 - 예를 들어 주민등록번호도 기본 키로 적절하기 않다. 
 - **권장: Long형 + 대체키(SEQUENCE or UUID) + 키 생성전략(GENERATIONTYPE.IDENTITY 등) 사용**
+
+## 요구사항 분석과 매핑
+
+요구사항 분석
+- 회원은 상품을 주문할 수 있다.
+- 주문 시 여러 종류의 상품을 선택할 수 있다.
+- 
+![스크린샷 2024-02-01 오후 8.30.23.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_8VIVfH%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.30.23.png)
+
+도메인 모델 분석
+- **회원과 주문의 관계**: **회원**은 여러 번 **주문**할 수 있다. (일대다)(1:N)
+- **주문과 상품의 관계**: **주문**할 때 여러 **상품**을 선택할 수 있다. 반대로 같은 **상품**도 여러 번 **주문**될 수 있다. 
+  - **주문상품** 이라는 모델을 만들어서 다대다 관계(N:N)를 일다대(1:N), 다대일(N:1) 관계로 풀어냄
+
+![스크린샷 2024-02-01 오후 8.35.38.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_JB4vZV%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.35.38.png)
+
+테이블 설계
+
+![스크린샷 2024-02-01 오후 8.36.37.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_P4jAF3%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.36.37.png)
+
+엔티티 설계와 매핑
+
+![스크린샷 2024-02-01 오후 8.43.45.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_rCQIog%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.43.45.png)
+
+**데이터 중심 설계의 문제점**
+- 현재 방식은 객체 설계를 테이블 설계에 맞춘 방식 
+- 테이블의 외래키를 객체에 그대로 가져옴 
+- 객체 그래프 탐색이 불가능 
+- 참조가 없으므로 UML도 잘못됨
