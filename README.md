@@ -950,13 +950,13 @@ Hibernate:
 요구사항 분석
 - 회원은 상품을 주문할 수 있다.
 - 주문 시 여러 종류의 상품을 선택할 수 있다.
-- 
+
 ![스크린샷 2024-02-01 오후 8.30.23.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_8VIVfH%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.30.23.png)
 
 도메인 모델 분석
 - **회원과 주문의 관계**: **회원**은 여러 번 **주문**할 수 있다. (일대다)(1:N)
 - **주문과 상품의 관계**: **주문**할 때 여러 **상품**을 선택할 수 있다. 반대로 같은 **상품**도 여러 번 **주문**될 수 있다. 
-  - **주문상품** 이라는 모델을 만들어서 다대다 관계(N:N)를 일다대(1:N), 다대일(N:1) 관계로 풀어냄
+  - **주문상품** 이라는 모델을 만들어서 다대다 관계(N:M)를 일대다(1:N), 다대일(N:1) 관계로 풀어냄
 
 ![스크린샷 2024-02-01 오후 8.35.38.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_JB4vZV%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.35.38.png)
 
@@ -973,3 +973,337 @@ Hibernate:
 - 테이블의 외래키를 객체에 그대로 가져옴 
 - 객체 그래프 탐색이 불가능 
 - 참조가 없으므로 UML도 잘못됨
+
+# 4. 다양한 연관관계 매핑
+
+객체가 지향하는 패러다임과 관계형 DB 가 지향하는 패러다임의 불일치로 헷갈릴 수 있으니 주의해야 한다.
+
+## 목표
+- **객체와 테이블 연관관계의 차이를 이해** 
+- **객체의 참조와 테이블의 외래 키를 매핑**
+
+용어 이해
+- **방향(Direction)**: 단방향, 양방향
+- **다중성(Multiplicity)**: 다대일(N:1), 일대다(1:N), 일대일(1:1), 다대다(N:M) 이해
+- **연관관계의 주인(Owner)**: 객체 양방향 연관관계는 관리 주인이 필요
+
+## 연관관계가 필요한 이유
+
+**객체지향 설계의 목표는 자율적인 객체들의 협력 공동체를 만드는 것이다. –조영호(객체지향의 사실과 오해)**
+
+**예제 시나리오**
+- 회원과 팀이 있다.
+- 회원과 팀은 다대일 관계다.
+- 회원은 하나의 팀에만 소속될 수 있다.
+
+### 객체를 테이블에 맞추어 모델링 (연관관계가 없는 객체)
+
+![스크린샷 2024-02-02 오후 5.52.34.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_4jgEfQ%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-02%20%EC%98%A4%ED%9B%84%205.52.34.png)
+
+```java
+@Entity
+public class Member {
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
+  
+  @Column(name = "USERNAME")
+  private String name;
+
+  @Column(name = "TEAM_ID")
+  private Long teamId;
+
+  public Member() {
+  }
+}
+
+@Entity
+public class Team {
+  @Id @GeneratedValue
+  private Long id;
+
+  private String name;
+}
+
+//팀 저장
+Team team = new Team();
+team.setName("TeamA"); 
+em.persist(team);
+
+//회원 저장
+Member member = new Member();
+member.setName("member1"); 
+member.setTeamId(team.getId()); 
+em.persist(member);
+
+Member findMember = em.find(Member.class, member.getId());
+
+Long findTeamId = findMember.getTeamId();
+Team team = em.find(Team.class, findTeamId);
+```
+
+- 외래 키 식별자를 직접 다룸
+- **식별자로 다시 조회, 객체 지향적인 방법은 아니다.**
+
+객체를 테이블에 맞추어 데이터 중심으로 모델링하면, **협력 관계를 만들 수 없다.** 
+- **테이블은 외래 키로 조인**을 사용해서 연관된 테이블을 찾는다. 
+- **객체는 참조**를 이용해서 연관된 객체를 찾는다.
+- 테이블과 객체 사이에는 이런 큰 간격이 있다.
+
+## 단방향 연관관계
+
+### 객체 지향 모델링
+
+**객체 연관관계 사용**
+
+![스크린샷 2024-02-03 오후 3.35.14.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_jBjXCL%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%203.35.14.png)
+
+**객체의 참조와 테이블의 외래 키를 매핑**
+
+```java
+@Entity
+public class Member {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(name = "USERNAME")
+    private String name;
+
+//    @Column(name = "TEAM_ID")
+//    private Long teamId;
+
+    @ManyToOne
+    @JoinColumn(name = "TEAM_ID")
+    private Team team;
+
+    public Member() {
+    }
+}
+```
+
+**ORM 매핑**
+
+![스크린샷 2024-02-03 오후 3.37.09.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_QB94Ja%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%203.37.09.png)
+
+**연관관계 저장**
+
+```java
+//팀 저장
+Team team = new Team();
+team.setName("TeamA");
+em.persist(team);
+
+//회원 저장
+Member member = new Member();
+member.setName("member1");
+member.setTeam(team); // 단방형 연관관계 설정, 참조 저장
+em.persist(member);
+```
+
+**참조로 연관관계 조회 - 객체 그래프 탐색**
+
+```java
+//조회
+Member findMember = em.find(Member.class, member.getId());
+
+//참조를 사용해서 연관관계 조회
+Team findTeam = findMember.getTeam();
+```
+
+```
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.USERNAME,
+        t1_0.id,
+        t1_0.name 
+    from
+        Member m1_0 
+    left join
+        Team t1_0 
+            on t1_0.id=m1_0.TEAM_ID 
+    where
+        m1_0.id=?
+```
+
+**연관관계 수정**
+
+```java
+ // 새로운 팀B
+Team teamB = new Team();
+teamB.setName("TeamB"); 
+em.persist(teamB);
+
+// 회원1에 새로운 팀B 설정
+member.setTeam(teamB);
+```
+
+## 양방향 연관관계와 연관관계의 주인
+
+### 양방향 매핑
+
+**예시**
+![스크린샷 2024-02-03 오후 4.04.28.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_HZlmWs%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%204.04.28.png)
+
+***테이블 연관관계에서는 외래키 하나로 양방향이 다 있는 것이다!!!!***
+- ***테이블의 연관계에는 방향이라는 것이 없다.*** 
+
+객체에서는 둘 다 세팅을 해줘야 한다.
+- **Member 엔티티는 단방향과 동일**
+- **Team 엔티티는 컬렉션 추가**
+
+```java
+@Entity
+public class Member {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(name = "USERNAME")
+    private String name;
+
+//    @Column(name = "TEAM_ID")
+//    private Long teamId;
+
+    @ManyToOne
+    @JoinColumn(name = "TEAM_ID")
+    private Team team;
+}
+
+@Entity
+public class Team {
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String name;
+
+    @OneToMany(mappedBy = "team")
+    private List<Member> members = new ArrayList<>();
+}
+```
+
+`@OneToMany(mappedBy = "team")` 에서의 team 은 Member class 의 team 변수명과 같다.
+- 반대편 사이드에 어떤게 있는지 알려주는 것
+
+**반대 방향으로 객체 그래프 탐색**
+
+```java
+// 조회
+Team findTeam = em.find(Team.class, team.getId());
+int memberSize = team.getMembers().size(); // 역방향 조회
+```
+
+#### 연관관계의 주인과 mappedBy
+
+- mappedBy = JPA의 멘탈붕괴 난이도
+- mappedBy 는 처음에는 이해하기 어렵다.
+- 객체와 테이블간에 연관관계를 맺는 차이를 이해해야 한다.
+- **테이블 연관관계**에서는 Foreign Key(외래키) 하나로 양쪽 연관관계를 다 가질 수 있다.
+- **객체 연관관계**에서는 참조가 양쪽에 다 있어야 한다.
+
+#### 객체와 테이블이 관계를 맺는 차이
+
+**객체 연관관계 = 2개**
+- 회원 -> 팀 연관관계 1개(단방향)
+- 팀 -> 회원 연관관계 1개(단방향)
+
+**테이블 연관관계 = 1개** 
+- 회원 <-> 팀의 연관관계 1개(양방향)
+
+![스크린샷 2024-02-03 오후 4.12.37.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_LOTTYO%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%204.12.37.png)
+
+#### 객체의 양방향 관계
+
+- 객체의 **양방향 관계는 사실 양방향 관계가 아니라 서로 다른 단뱡향 관계 2개다.**
+- 객체를 양방향으로 참조하려면 **단방향 연관관계를 2개** 만들어야 한다.
+  - A -> B (a.getB()) 
+  - B -> A (b.getA())
+
+```java
+class A { B b; }
+class B { A a; }
+```
+
+#### 테이블의 양방향 연관관계
+
+- 테이블은 **외래 키 하나**로 두 테이블의 연관관계를 관리
+- MEMBER.TEAM_ID 외래 키 하나로 양방향 연관관계 가짐
+- **(양쪽으로 조인할 수 있다.)**
+
+```sql
+SELECT *
+FROM MEMBER M
+JOIN TEAM T ON M.TEAM_ID = T.TEAM_ID
+
+SELECT *
+FROM TEAM T
+JOIN MEMBER M ON T.TEAM_ID = M.TEAM_ID
+```
+
+#### 둘 중 하나로 외래 키를 관리해야 한다.
+
+![스크린샷 2024-02-03 오후 4.18.09.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_whIM0i%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%204.18.09.png)
+
+객체 연관관계에서 2가지 중 어느 것으로 mapping 을 해야할까?
+- Member 에서 Team 으로 가는 참조값이랑 Team 에서 Member 으로 가는 참조값이 있다.
+- Member 의 team 값을 update했을 때, 이 외래키 값이 update되어야 할까?
+- Team 의 members 값을 update했을 때, 이 외래키 값이 update되어야 할까?
+- DB (테이블) 입장에서는 Member 테이블의 TEAM_ID (외래키) 값만 update 되면 된다.
+
+### 연관관계의 주인(Owner)
+
+**양방향 매핑 규칙**
+- 객체의 두 관계중 하나를 연관관계의 주인으로 지정
+- **연관관계의 주인만이 외래 키를 관리(등록, 수정)**
+- **주인이 아닌쪽은 읽기만 가능**
+- 주인은 mappedBy 속성 사용 X
+- 주인이 아니면 mappedBy 속성으로 주인 지정
+
+#### 누구를 주인으로? - 외래 키가 있는 있는 곳을 주인
+- ***외래 키가 있는 있는 곳을 주인***으로 정해라!!!!!!!!!!!!!! 
+- DB 입장에서 보면, 외래키가 있는 곳이 무조건 N(다) 이고, 외래키가 없는 곳이 1 이다. 1:N 이 되는 것이다.
+- 다 쪽이 무조건 연관관계의 주인이 되는 것!!
+- 비즈니스 로직 적으로 중요하다기 보다는 그냥 정말 단순히 DB 의 관점에서 N 이 되는 쪽이 그냥 다 쪽이고, 즉, 연관관계의 주인이 되면 된다.
+- 외래키 관리가 엔티티와 테이블이 Mapping 된 테이블에서 전부 관리가 되는 것. 성능 이슈도 없다.
+- 여기서는 `Member.team`이 연관관계의 주인
+  - 생각해보면 이상하다. `Team.members` 값을 update했는데, Member 테이블이 update query 가 날라가면 이상한 것. 
+  - 성능이슈도 있다.
+
+![스크린샷 2024-02-03 오후 5.24.03.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_jmRxdK%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.24.03.png)
+
+#### 양방향 매핑시 가장 많이 하는 실수 (연관관계의 주인에 값을 입력하지 않음)
+
+```java
+Team team = new Team();
+team.setName("TeamA"); 
+em.persist(team);
+
+Member member = new Member();
+member.setName("member1");
+
+//역방향(주인이 아닌 방향)만 연관관계 설정
+team.getMembers().add(member);
+em.persist(member);
+```
+
+![스크린샷 2024-02-03 오후 5.24.44.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_JaAQYO%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.24.44.png)
+
+
+#### 양방향 매핑시 연관관계의 주인에 값을 입력해야 한다. (순수한 객체 관계를 고려하면 항상 양쪽다 값을 입력해야 한다.)
+
+```java
+Team team = new Team(); 
+team.setName("TeamA"); em.persist(team);
+
+Member member = new Member(); member.setName("member1");
+
+team.getMembers().add(member); 
+//연관관계의 주인에 값 설정
+member.setTeam(team); 
+
+em.persist(member); 
+```
+
+![스크린샷 2024-02-03 오후 5.25.18.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_c9WQBH%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.25.18.png)
