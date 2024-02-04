@@ -1252,7 +1252,7 @@ JOIN MEMBER M ON T.TEAM_ID = M.TEAM_ID
 - Team 의 members 값을 update했을 때, 이 외래키 값이 update되어야 할까?
 - DB (테이블) 입장에서는 Member 테이블의 TEAM_ID (외래키) 값만 update 되면 된다.
 
-### 연관관계의 주인(Owner)
+## 연관관계의 주인(Owner)
 
 **양방향 매핑 규칙**
 - 객체의 두 관계중 하나를 연관관계의 주인으로 지정
@@ -1261,7 +1261,7 @@ JOIN MEMBER M ON T.TEAM_ID = M.TEAM_ID
 - 주인은 mappedBy 속성 사용 X
 - 주인이 아니면 mappedBy 속성으로 주인 지정
 
-#### 누구를 주인으로? - 외래 키가 있는 있는 곳을 주인
+### 누구를 주인으로? - 외래 키가 있는 있는 곳을 주인
 - ***외래 키가 있는 있는 곳을 주인***으로 정해라!!!!!!!!!!!!!! 
 - DB 입장에서 보면, 외래키가 있는 곳이 무조건 N(다) 이고, 외래키가 없는 곳이 1 이다. 1:N 이 되는 것이다.
 - 다 쪽이 무조건 연관관계의 주인이 되는 것!!
@@ -1291,19 +1291,82 @@ em.persist(member);
 ![스크린샷 2024-02-03 오후 5.24.44.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_JaAQYO%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.24.44.png)
 
 
-#### 양방향 매핑시 연관관계의 주인에 값을 입력해야 한다. (순수한 객체 관계를 고려하면 항상 양쪽다 값을 입력해야 한다.)
+#### 양방향 매핑시 연관관계의 주인에 값을 입력해야 한다. (순수한 객체 관계를 고려하면 항상 양쪽 다 값을 입력해야 한다.)
+
+***양방향 매핑시에는 양쪽에 값을 다 넣어주는게 사실 맞다!!!!!***
+- JPA 의 관점에서는 연관관계의 주인 쪽에서만 값을 넣어주면 되지만,
+- 객체지향적인 관점에서는 양쪽에 값을 다 넣어줘야 한다.
 
 ```java
 Team team = new Team(); 
-team.setName("TeamA"); em.persist(team);
+team.setName("TeamA"); 
+em.persist(team);
 
-Member member = new Member(); member.setName("member1");
+Member member = new Member(); 
+member.setName("member1");
 
 team.getMembers().add(member); 
 //연관관계의 주인에 값 설정
 member.setTeam(team); 
 
-em.persist(member); 
+em.persist(member);
 ```
 
 ![스크린샷 2024-02-03 오후 5.25.18.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_c9WQBH%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.25.18.png)
+
+**1. 객체지향적인 관점**
+- `team.getMembers().add(member);`: 역방향에 값을 안넣어줄 시에
+- `em.flush(); em.clear();` 를 안할시에, team, member 둘 다 영속성 컨텍스트 안의 1차 캐시에만 값이 있는 상태이기 때문에,
+- List<Member> 컬렉션은 빈 값인 상태이다.
+
+**2. 테스트 케이스를 작성할 때**
+- 테스트 케이스는 JPA 가 없는 환경에서도 동작해야 한다.
+- 한쪽만 설정할 경우, 다른 한쪽에서 조회할 시에 값이 `null` 일 수 있다.
+
+***따라서, 양방향 매핑시에는 양쪽에 값을 넣어주는게 맞다!!!***
+
+#### 양방향 연관관계 주의 - 실습
+- **순수 객체 상태를 고려해서 항상 양쪽에 값을 설정하자**
+- *연관관계 편의 메소드*를 생성하자
+- 양방향 매핑시에 무한 루프를 조심하자 
+  - 예: toString(), lombok, JSON 생성 라이브러리
+
+*연관관계 편의 메소드 예시*
+- ***JPA 상태를 변경하는 메서드는 가급적 setXXX 보다는 다른 의미 있는 이름으로 변경하자!!!!!***
+```java
+public class Member {
+    public void changeTeam(Team team) {
+        this.team = team;
+        team.getMemers().add(this);
+    }
+}
+```
+
+- ***원칙적으로 구 list에 있는 team을 제거하도록 코드를 작성하는 것이 맞습니다. 다만 이 관계에서 list는 연관관계의 주인이 아니므로 실제 DB 에 영향을 주지는 않습니다. 객체까지 고려하면 list에 있는 team을 제거하는 것이 맞지만, 실용적인 관점에서 그냥 두어도 DB에서 삭제되지 않으므로 크게 상관은 없습니다.***
+- **삭제하는 로직까지 추가한다면, setTeam(), changeTeam() 메서드는 따로 구현하는게 바람직하다.**
+
+#### 양방향 매핑 정리
+- ***단방향 매핑만으로도 이미 연관관계 매핑은 완료***
+- 실무에서도 설계를 할 때, 단방향 매핑으로 설계를 끝내야 한다.
+- 양방향 매핑은 반대 방향으로 조회(객체 그래프 탐색) 기능이 추가된 것 뿐
+- JPQL에서 역방향으로 탐색할 일이 많음
+- 단방향 매핑을 잘 하고 양방향은 필요할 때 추가해도 됨 (테이블에 영향을 주지 않음)
+
+#### 연관관계의 주인을 정하는 기준
+- 비즈니스 로직을 기준으로 연관관계의 주인을 선택하면 안됨
+- **연관관계의 주인은 외래키의 위치를 기준으로 정해야함**
+
+## 실전 예제 - 2. 연관관계 매핑 시작
+
+**테이블 구조**
+- 테이블 구조는 이전과 같다.
+
+![스크린샷 2024-02-03 오후 11.25.42.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_Dw9Gh7%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%2011.25.42.png)
+
+**객체 구조**
+- 참조를 사용하도록 변경
+
+![스크린샷 2024-02-03 오후 11.26.12.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_tKJtfi%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%2011.26.12.png)
+
+
+ 
