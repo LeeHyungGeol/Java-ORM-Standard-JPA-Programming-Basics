@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "MEMBER_ID")
     private Long id;
 
     @Column(name = "USERNAME")
@@ -15,7 +16,7 @@ public class Member {
 //    private Long teamId;
 
     @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
+    @JoinColumn(name = "TEAN_ID", insertable = false, updatable = false)
     private Team team;
 
     public Member() {
@@ -35,13 +36,5 @@ public class Member {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Team getTeam() {
-        return team;
-    }
-
-    public void setTeam(Team team) {
-        this.team = team;
     }
 }

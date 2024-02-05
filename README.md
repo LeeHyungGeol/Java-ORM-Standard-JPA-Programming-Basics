@@ -1368,6 +1368,8 @@ public class Member {
 
 ![스크린샷 2024-02-03 오후 11.26.12.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_tKJtfi%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%2011.26.12.png)
 
+---
+
 # 다양한 연관관계 매핑
 
 ## 연관관게 매핑 고려사항 3가지
@@ -1427,3 +1429,139 @@ public class Member {
 **다대일 양방향 정리**
 - 외래 키가 있는 쪽이 연관관계의 주인
 - 양쪽을 서로 참조하도록 개발
+
+## 일대다 [1:N]
+
+### 일대다 단방형 예시
+
+- 실무에서 절대 권장하지 않는 방식
+- 그러나 있을 수 있는 상황이긴 하다.
+- 표준 스펙에서도 지원하긴 하다.
+
+![스크린샷 2024-02-04 오후 10.25.57.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_9pvbB1%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-04%20%EC%98%A4%ED%9B%84%2010.25.57.png)
+
+- DB 설계상 N 쪽에 외래키(FK) 가 들어갈 수 밖에 없다.
+- 이 상황에선 `Team.members` 가 연관관계의 주인이 되는 것이다.
+- **그래서, `Team.members` 를 insert, update 할 시에 Member 테이블의 `TEAM_ID` 도 변경해줘야 한다.**
+
+### 일대다 단방향 정리
+
+```java
+@Entity
+public class Member {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "MEMBER_ID")
+    private Long id;
+
+    @Column(name = "USERNAME")
+    private String name;
+}
+
+@Entity
+public class Team {
+    @Id
+    @GeneratedValue
+    @Column(name = "TEAM_ID")
+    private Long id;
+
+    private String name;
+
+    @OneToMany
+    @JoinColumn(name = "TEAM_ID")
+    private List<Member> members = new ArrayList<>();
+}
+
+Member member = new Member();
+member.setName("member1");
+
+em.persist(member);
+
+Team team = new Team();
+team.setName("team1");
+//
+team.getMembers().add(member);
+
+em.persist(team);
+
+tx.commit();
+```
+
+```
+Hibernate: 
+    /* insert for
+        hellojpa.Member */insert 
+    into
+        Member (USERNAME, MEMBER_ID) 
+    values
+        (?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.Team */insert 
+    into
+        Team (name, TEAM_ID) 
+    values
+        (?, ?)
+Hibernate: 
+    update
+        Member 
+    set
+        TEAM_ID=? 
+    where
+        MEMBER_ID=?
+```
+
+member table 의 TEAM_ID 를 위해서 update query 가 한번 더 날라가야 한다.
+- 운영에서 실제로 잘 안쓰는 이유는 Team entity 에 손을 댔는데, 왜 Member table 에 뭔가 update 가 되지?
+- 그리고 실제 운영에서는 수십개의 테이블이 엮여서 돌아가고 있기 때문에 분명히 헷갈릴 가능성이 있다.
+- 그렇게 되면, 운영이 되게 힘들어진다.
+
+
+- 일대다 단방향은 일대다(1:N)에서 **일(1)이 연관관계의 주인**
+- 테이블 일대다 관계는 항상 **다(N) 쪽에 외래 키가 있음**
+- 객체와 테이블의 차이 때문에 반대편 테이블의 외래 키를 관리하는 특이한 구조
+- `@JoinColumn`을 꼭 사용해야 함. 그렇지 않으면 조인 테이블 방식을 사용함(중간에 테이블을 하나 추가함)
+
+### 일대다 단방향 매핑의 단점
+- **엔티티가 관리하는 외래 키가 다른 테이블에 있음**
+- 연관관계 관리를 위해 추가로 UPDATE SQL 실행
+- 일대다 단방향 매핑보다는 **다대일 양방향 매핑**을 사용하자
+  - 다대일 단방향이 조금 객체적으로 손해(?)를 볼 수 있더라도, 이 방법이 더 깔끔하다.
+    - 손해를 본다는 얘기는 Member 에서 Team 에 대한 참조가 필요없을 수 있는데도, Team 참조를 갖고 있어야 한다.
+- 결론적으로, 다대일 단방향, 양방향을 권장하고 그것만 사용한다면, 일대다 단방향은 몰라도 된다!!!!!!
+
+## 일대다 양방향
+
+![스크린샷 2024-02-05 오후 4.27.28.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_xu7IPh%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%204.27.28.png)
+
+```java
+@Entity
+public class Team {
+    @Id
+    @GeneratedValue
+    @Column(name = "TEAM_ID")
+    private Long id;
+
+    @OneToMany
+    @JoinColumn(name = "TEAM_ID")
+    private List<Member> members = new ArrayList<>();
+}
+
+public class Member {
+    @ManyToOne
+    @JoinColumn(name = "TEAM_ID", insertable = false, updatable = false)
+    private Team team;
+}
+```
+
+***읽기 전용 매핑이다!!!!!***
+- 결과적으로 `Team.members` 가 연관과계의 주인 역할을 계속하게 된다.
+- `Member.team` 도 연관관계의 주인처럼 만들었지만, 읽기 전용으로 (insertable = false, updatable = false) 만들어버린 것이다.
+- 결국, 양방향 매핑처럼 만들어버린 것이다.
+
+### 일대다 양방향 정리
+
+- 이런 매핑은 공식적으로 존재 X
+- `@JoinColumn(insertable=false, updatable=false)`
+- **읽기 전용 필드**를 사용해서 양방향 처럼 사용하는 방법
+- **다대일 양방향을 사용하자**
