@@ -11,7 +11,7 @@ JPA 설정하기
 - hibernate로 시작: 하이버네이트 전용 속성
 
 데이터베이스 방언 - Dialect
-![스크린샷 2024-01-29 오전 1.47.08.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_mck0L7%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%EC%A0%84%201.47.08.png)
+! [스크린샷 2024-01-29 오전 1.47.08.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_mck0L7%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%EC%A0%84%201.47.08.png)
 
 JPA 구동 방식
 ![스크린샷 2024-01-29 오전 1.48.23.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_Dsp4VT%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%EC%A0%84%201.48.23.png)
@@ -1565,3 +1565,154 @@ public class Member {
 - `@JoinColumn(insertable=false, updatable=false)`
 - **읽기 전용 필드**를 사용해서 양방향 처럼 사용하는 방법
 - **다대일 양방향을 사용하자**
+
+## 일대일 [1:1]
+
+일대일 관계
+- **일대일** 관계는 그 반대도 **일대일**
+- 주 테이블이나 대상 테이블 중에 외래 키 선택 가능
+- 대칭적인 것
+  - 주 테이블에 외래 키
+  - 대상 테이블에 외래 키
+- 외래 키에 데이터베이스 유니크(UNI) 제약조건 추가
+
+### 일대일: 주 테이블에 외래 키 단방향
+
+![스크린샷 2024-02-05 오후 5.28.05.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_fl7JhW%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.28.05.png)
+
+```java
+@Entity
+public class Locker {
+    @Id @GeneratedValue
+    @Column(name = "LOCKER_ID")
+    private Long id;
+
+    private String name;
+}
+
+@Entity
+public class Member {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "MEMBER_ID")
+    private Long id;
+
+    @OneToOne
+    @JoinColumn(name = "LOCKER_ID")
+    private Locker locker;
+}
+```
+
+**일대일: 주 테이블에 외래 키 단방향 정리**
+- 다대일(@ManyToOne) 단방향 매핑과 유사
+
+### 일대일: 주 테이블에 외래 키 양방향
+
+![스크린샷 2024-02-05 오후 5.29.36.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_tvXqEj%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.29.36.png)
+
+```java
+@Entity
+public class Locker {
+    @Id @GeneratedValue
+    @Column(name = "LOCKER_ID")
+    private Long id;
+
+    private String name;
+    
+    @OneToOne(mappedBy = "locker")
+    private Member member;
+}
+
+@Entity
+public class Member {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "MEMBER_ID")
+    private Long id;
+
+    @OneToOne
+    @JoinColumn(name = "LOCKER_ID")
+    private Locker locker;
+}
+```
+
+**일대일: 주 테이블에 외래 키 양방향 정리**
+- 다대일 양방향 매핑 처럼 **외래 키가 있는 곳이 연관관계의 주인**
+- 반대편은 `mappedBy` 적용
+
+### 일대일: 대상 테이블에 외래 키 단방향
+
+![스크린샷 2024-02-05 오후 5.30.16.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_QR32Jl%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.30.16.png)
+
+**일대일: 대상 테이블에 외래 키 단방향 정리**
+- 단방향 관계는 JPA 지원X
+- 양방향 관계는 지원
+
+### 일대일: 대상 테이블에 외래 키 양방향
+
+![스크린샷 2024-02-05 오후 5.31.32.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_1HGJmV%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.31.32.png)
+
+**일대일: 대상 테이블에 외래 키 양방향 정리**
+- 사실 일대일 주 테이블에 외래 키 양방향과 매핑 방법은 같음
+
+### 일대일 정리
+- ***주 테이블에 외래 키***
+  - `예시에서 Member 를 통해서 Locker 를 access`
+  - 주 객체가 대상 객체의 참조를 가지는 것 처럼 주 테이블에 외래 키를 두고 대상 테이블을 찾음
+  - **객체지향 개발자 선호**
+  - JPA 매핑 편리
+  - 장점: 주 테이블만 조회해도 대상 테이블에 데이터가 있는지 확인 가능
+  - 단점: 값이 없으면 외래 키에 null 허용
+- ***대상 테이블에 외래 키***
+  - `예시에서 Locker 를 통해서 Member 를 access`
+  - 대상 테이블에 외래 키가 존재
+  - **전통적인 데이터베이스 개발자 선호**
+  - 장점: 주 테이블과 대상 테이블을 일대일에서 일대다 관계로 변경할 때 테이블 구조 유지
+    - 예를 들어, Member (1) 가 여러개의 Locker (N) 를 가질 수 있는 비즈니스 로직으로 변경될 수 있다.
+    - 먼 미래를 생각했을 때
+  - 단점: 프록시 기능의 한계로 **지연 로딩으로 설정해도 항상 즉시 로딩됨**(프록시는 뒤에서 설명)
+    - 어차피 Member 에 locker 가 있는지 조회하려면 member 를 조회하고, 또 locker 를 조회하는 select query (where locker.member_id = ?) 를 한번 더 날려야 한다. 
+    - 총 2번의 select query 를 날려야 한다.
+
+![OneToOne  eager loading example.png](..%2F..%2F..%2FDownloads%2FOneToOne%20%20eager%20loading%20example.png)
+
+> 왜 1:1 일때만 프록시 기능의 한계로 지연 로딩으로 설정해도 항상 즉시 로딩됨 << 이런 현상이 나타는건가요 ? [일대다 양방향 일떈 lazy 확인.]
+
+> 이 내용을 이해하려면 값이 없을 때 어떻게 되는가를 이해해야 합니다.
+> 예를 들어서 A,B 엔티티가 다음과 같이 설정이 되어 있습니다.
+> 
+> 외래키는 B에 있고, B가 연관관계의 주인입니다.
+> 
+> A {
+> 
+> @OneToOne B b
+> 
+> }
+> 
+> 만약 b의 결과가 없다면 어떻게 노출되어야 할까요?
+> 
+> 바로 결과는 null이 되어야 합니다.
+> 
+> 그런데 만약 A -> B가 지연로딩 관계라면 b는 프록시 객체가 되어야 합니다.
+> 
+> 여기에서 문제가 발생합니다.
+> 
+> 만약 이 상황에서 프록시를 적용하기 위해서 b가 프록시 객체가 된다면 b는 null이 아니라 프록시 객체를 가지게 됩니다.
+> 
+> 이런 상황에서 a.b를 호출한다면 우리가 기대하는 결과는 null이어야 하는데, 프록시가 되겠지요?
+> 
+> 결국 프록시를 미리 넣게되면 null이라는 것을 넣을 수 없는 문제가 발생합니다.
+> 
+> @OneToOne에서 외래키가 A에 있으면 A를 조회하는 순간 B의 데이터가 있는지 확인할 수 있습니다. 그래서 null을 입력해야 할지, 아니면 프록시를 입력해야 할지 명확한 판단이 가능하지요.
+> 
+> 그런데 지금 처럼 @OneToOne에서 외래키가 B에 있으면 A를 조회할 때 B가 데이터가 있는지 없는지 판단이 불가능합니다. 그래서 null을 입력할지 아니면 프록시를 입력해야 할지 판단히 불가능합니다. 따라서 이 경우 강제로 즉시 로딩을 해서 데이터가 있으면 해당 데이터를 넣고, 없으면 null을 입력하게 됩니다.
+> 
+> 자 그러면 컬렉션의 경우에는 어떻게 될까요?
+> 
+> 컬렉션은 재미있게도 null일 필요가 없습니다. 컬렉션 자체가 데이터가 없는 Empty를 표현할 수 있습니다.
+> 
+> 컬렉션 타입의 객체에 데이터가 없을 때 null이 아닌, 비어있는 컬렉션(Empty Collection)으로 표현할 수 있다는 뜻입니다.
+>
+> 예를 들어, List<String> list = new ArrayList<>(); 처럼 선언하고 초기화할 수 있습니다. 이때 list는 데이터가 하나도 없는 비어있는 상태를 가지게 되지만, list 자체는 null이 아닙니다.
+> 
+> 따라서 컬렉션은 항상 지연로딩으로 동작할 수 있습니다.
