@@ -11,10 +11,11 @@ JPA 설정하기
 - hibernate로 시작: 하이버네이트 전용 속성
 
 데이터베이스 방언 - Dialect
-! [스크린샷 2024-01-29 오전 1.47.08.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_mck0L7%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%EC%A0%84%201.47.08.png)
+
+<img width="1287" alt="스크린샷 2024-02-10 오후 9 25 17" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/4403fc07-ce2e-4068-97ce-be166f4a11f1">
 
 JPA 구동 방식
-![스크린샷 2024-01-29 오전 1.48.23.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_Dsp4VT%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%EC%A0%84%201.48.23.png)
+<img width="1361" alt="스크린샷 2024-02-10 오후 9 31 44" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/7659d99e-60a4-49ed-aa7f-3e0f575a849c">
 
 ```java
 import hellojpa.Member;
@@ -149,7 +150,7 @@ HAVING, JOIN 지원
 - 영속성 컨텍스트
 
 EntityMangerFactory 와 EntityManager
-![스크린샷 2024-01-29 오후 5.12.19.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_dxPiKf%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%ED%9B%84%205.12.19.png)
+<img width="703" alt="스크린샷 2024-02-10 오후 9 36 16" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/2f1bc354-8bfe-4234-8a69-ebbd2843a7e6">
 
 **영속성 컨텍스트** 
 - JPA 를 이해하는데 가장 중요한 용어
@@ -159,10 +160,12 @@ EntityMangerFactory 와 EntityManager
   - entity 를 영속성 컨텍스트에 저장한다는 의미
 - EntityManager 를 통해서 영속성 컨텍스트에 접근
 
-Entity 의 생명주기
-![스크린샷 2024-01-29 오후 6.40.15.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_C0j3SX%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%ED%9B%84%206.40.15.png)
+<img width="707" alt="스크린샷 2024-02-10 오후 9 38 24" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/18a2bfa6-228d-4530-9d3b-cb767c1643c0">
 
-![스크린샷 2024-01-29 오후 6.40.41.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_OqeRBc%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%ED%9B%84%206.40.41.png)
+**Entity 의 생명주기**
+<img width="681" alt="스크린샷 2024-02-10 오후 9 35 11" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/c2d371d6-099c-48e9-bdbb-179ff2adf2af">
+
+<img width="652" alt="스크린샷 2024-02-10 오후 9 39 42" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/d2f52207-19a8-4572-b230-1779792cf009">
 
 ```java
 import jakarta.persistence.*;
@@ -227,7 +230,9 @@ Hibernate:
 
 #### 1차 캐시 동일성(identity) 보장
 **1차 캐시에서 조회**
-![스크린샷 2024-01-29 오후 7.38.39.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_23BnGS%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%ED%9B%84%207.38.39.png)
+
+<img width="650" alt="스크린샷 2024-02-10 오후 9 41 55" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/fc44d3e0-8ef7-4341-9ddc-ac81b28014fa">
+
 ```java
 // 비영속
 Member member = new Member();
@@ -243,7 +248,8 @@ System.out.println("===After===");
 Member findMember = em.find(Member.class, 100L);
 ```
 
-![스크린샷 2024-01-29 오후 7.40.10.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_QvonB7%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-29%20%EC%98%A4%ED%9B%84%207.40.10.png)
+<img width="886" alt="스크린샷 2024-02-10 오후 9 42 50" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/fba567c7-4c17-46ec-9a2c-bab39a0d4fb8">
+
 ```java
 Member findMember2 = em.find(Member.class, 2L);
 ```
@@ -261,9 +267,10 @@ System.out.println("result: " + (findMember2 == findMember3)); // result: true
 - 1차 캐시로 반복 가능한 읽기(REPEATABLE READ) 등급의 트랜잭션 격리 수준을 데이터베이스가 아닌 애플리케이션 차원에서 제공
 
 #### 트랜잭션을 지원하는 쓰기 지연 (transactional write-behind)
-![스크린샷 2024-01-30 오전 12.11.46.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_ZsP55l%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-30%20%EC%98%A4%EC%A0%84%2012.11.46.png)
+<img width="887" alt="스크린샷 2024-02-10 오후 9 44 00" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/8b1350e2-273f-4428-b90b-9d29ff0fd724">
 
-![스크린샷 2024-01-30 오전 12.12.00.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_sxA5KC%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-30%20%EC%98%A4%EC%A0%84%2012.12.00.png)
+<img width="764" alt="스크린샷 2024-02-10 오후 9 44 22" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/4eafea85-9e8d-4bfe-9a4a-4f1b5b7756a8">
+
 ```java
 Member member1 = new Member(4L, "hello4");
 Member member2 = new Member(5L, "hello5");
@@ -295,7 +302,7 @@ member5.setName("em.persist() 를 선언해줘야 하는거 아니야?");
 tx.commit();
 ```
 
-![스크린샷 2024-01-30 오전 12.28.19.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_IpFtH4%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-30%20%EC%98%A4%EC%A0%84%2012.28.19.png)
+<img width="835" alt="스크린샷 2024-02-10 오후 9 45 14" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/2b8f0b80-1f3f-447d-8cb6-66d2580dcd4c">
 
 - 1차 캐시 안에는 스냅샷이란 것이 있다.
   - 값을 읽어온 시점의 최초 시점의 상태를 말한다.
@@ -693,7 +700,8 @@ testLocalDateTime timestamp(6),
 ```
 -  LocalDate 는 data, LocalDateTime 은 TimeStamp 타입으로 생성된다.
 - Java 8 이전의 버젼(옛날 버젼)을 사용해야 한다면 `@Temporal` 을 사용하면 된다.
-![스크린샷 2024-01-31 오후 4.47.35.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_Qkqijp%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-31%20%EC%98%A4%ED%9B%84%204.47.35.png)
+
+<img width="669" alt="스크린샷 2024-02-10 오후 9 51 28" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/8949e528-bf64-4837-8fcb-72b55edccb3a">
 
 #### @Lob
 데이터베이스 BLOB, CLOB 타입과 매핑
@@ -871,7 +879,7 @@ Hibernate:
 
 **주의: allocationSize 기본값 = 50**
 
-![스크린샷 2024-01-31 오후 7.50.53.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_6IRTia%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-31%20%EC%98%A4%ED%9B%84%207.50.53.png)
+<img width="669" alt="스크린샷 2024-02-10 오후 9 58 02" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/1c9636c0-2923-4da9-881e-a475158c5c7a">
 
 #### SEQUENCE 전략과 최적화
 
@@ -928,8 +936,7 @@ Hibernate:
     insert into MY_SEQUENCES(sequence_name, next_val) values ('MEMBER_SEQ',0)
 ```
 
-![스크린샷 2024-01-31 오후 8.00.38.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_LnJ83Q%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-01-31%20%EC%98%A4%ED%9B%84%208.00.38.png)
-
+<img width="666" alt="스크린샷 2024-02-10 오후 9 59 57" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/1089325d-0c0c-4916-ae97-ec82294fca08">
 - `initialValue, allocationSize` 로 최적화한다.
 
 **키 생성 전용 테이블을 하나 만들어서 데이터베이스 시퀀스를 흉내내는 전략**
@@ -937,7 +944,7 @@ Hibernate:
 - 단점: 성능
 - 잘 쓰이진 않는다.
 
-[채번 테이블 성능](http://www.gurubee.net/lecture/4253)
+[채번 테이블 성능에 관한 글](http://www.gurubee.net/lecture/4253)
 
 ### 권장하는 식별자 전략
 - **기본 키 제약 조건**: null 아님, 유일, **변하면 안된다.** 
@@ -951,22 +958,22 @@ Hibernate:
 - 회원은 상품을 주문할 수 있다.
 - 주문 시 여러 종류의 상품을 선택할 수 있다.
 
-![스크린샷 2024-02-01 오후 8.30.23.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_8VIVfH%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.30.23.png)
+<img width="683" alt="스크린샷 2024-02-10 오후 10 01 31" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/c18a0d94-1a8e-41fe-82c0-74a7ee059d1d">
 
 도메인 모델 분석
 - **회원과 주문의 관계**: **회원**은 여러 번 **주문**할 수 있다. (일대다)(1:N)
 - **주문과 상품의 관계**: **주문**할 때 여러 **상품**을 선택할 수 있다. 반대로 같은 **상품**도 여러 번 **주문**될 수 있다. 
   - **주문상품** 이라는 모델을 만들어서 다대다 관계(N:M)를 일대다(1:N), 다대일(N:1) 관계로 풀어냄
 
-![스크린샷 2024-02-01 오후 8.35.38.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_JB4vZV%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.35.38.png)
+<img width="581" alt="스크린샷 2024-02-10 오후 10 01 47" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/a20b309b-c211-4df0-8707-dd5acfcfeb59">
 
-테이블 설계
+**테이블 설계**
 
-![스크린샷 2024-02-01 오후 8.36.37.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_P4jAF3%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.36.37.png)
+<img width="590" alt="스크린샷 2024-02-10 오후 10 02 07" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/a4152836-32b2-4714-9df8-7e1afbe7c64b">
 
-엔티티 설계와 매핑
+**엔티티 설계와 매핑**
 
-![스크린샷 2024-02-01 오후 8.43.45.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_rCQIog%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-01%20%EC%98%A4%ED%9B%84%208.43.45.png)
+<img width="628" alt="스크린샷 2024-02-10 오후 10 10 14" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/a0a39dfd-363e-4f95-a995-84ce0abec08d">
 
 **데이터 중심 설계의 문제점**
 - 현재 방식은 객체 설계를 테이블 설계에 맞춘 방식 
@@ -998,7 +1005,7 @@ Hibernate:
 
 ### 객체를 테이블에 맞추어 모델링 (연관관계가 없는 객체)
 
-![스크린샷 2024-02-02 오후 5.52.34.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_4jgEfQ%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-02%20%EC%98%A4%ED%9B%84%205.52.34.png)
+<img width="799" alt="스크린샷 2024-02-10 오후 10 12 26" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/57af7c32-bd16-4d3c-ad8a-5c155b2fc0de">
 
 ```java
 @Entity
@@ -1056,7 +1063,7 @@ Team team = em.find(Team.class, findTeamId);
 
 **객체 연관관계 사용**
 
-![스크린샷 2024-02-03 오후 3.35.14.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_jBjXCL%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%203.35.14.png)
+<img width="849" alt="스크린샷 2024-02-10 오후 10 12 55" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/d5f3c589-39ee-41fd-8518-dccb34b08823">
 
 **객체의 참조와 테이블의 외래 키를 매핑**
 
@@ -1084,7 +1091,7 @@ public class Member {
 
 **ORM 매핑**
 
-![스크린샷 2024-02-03 오후 3.37.09.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_QB94Ja%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%203.37.09.png)
+<img width="853" alt="스크린샷 2024-02-10 오후 10 13 33" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/bc374454-ea30-42bb-9699-e627d1120861">
 
 **연관관계 저장**
 
@@ -1144,7 +1151,8 @@ member.setTeam(teamB);
 ### 양방향 매핑
 
 **예시**
-![스크린샷 2024-02-03 오후 4.04.28.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_HZlmWs%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%204.04.28.png)
+
+<img width="809" alt="스크린샷 2024-02-10 오후 10 14 13" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/aef7a9e7-f140-4bdc-ab03-5c24f8ea9b45">
 
 ***테이블 연관관계에서는 외래키 하나로 양방향이 다 있는 것이다!!!!***
 - ***테이블의 연관계에는 방향이라는 것이 없다.*** 
@@ -1212,7 +1220,7 @@ int memberSize = team.getMembers().size(); // 역방향 조회
 **테이블 연관관계 = 1개** 
 - 회원 <-> 팀의 연관관계 1개(양방향)
 
-![스크린샷 2024-02-03 오후 4.12.37.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_LOTTYO%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%204.12.37.png)
+<img width="806" alt="스크린샷 2024-02-10 오후 10 14 48" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/c20bddc0-1205-4c17-be00-bc8ca6810b1a">
 
 #### 객체의 양방향 관계
 
@@ -1244,7 +1252,7 @@ JOIN MEMBER M ON T.TEAM_ID = M.TEAM_ID
 
 #### 둘 중 하나로 외래 키를 관리해야 한다.
 
-![스크린샷 2024-02-03 오후 4.18.09.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_whIM0i%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%204.18.09.png)
+<img width="822" alt="스크린샷 2024-02-10 오후 10 15 19" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/e906d69d-8cbe-4beb-bdb1-9a8e6b178ba1">
 
 객체 연관관계에서 2가지 중 어느 것으로 mapping 을 해야할까?
 - Member 에서 Team 으로 가는 참조값이랑 Team 에서 Member 으로 가는 참조값이 있다.
@@ -1271,7 +1279,7 @@ JOIN MEMBER M ON T.TEAM_ID = M.TEAM_ID
   - 생각해보면 이상하다. `Team.members` 값을 update했는데, Member 테이블이 update query 가 날라가면 이상한 것. 
   - 성능이슈도 있다.
 
-![스크린샷 2024-02-03 오후 5.24.03.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_jmRxdK%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.24.03.png)
+<img width="713" alt="스크린샷 2024-02-10 오후 10 28 46" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/f3591510-eda8-4e08-b8f0-9080ac4c1190">
 
 #### 양방향 매핑시 가장 많이 하는 실수 (연관관계의 주인에 값을 입력하지 않음)
 
@@ -1288,8 +1296,7 @@ team.getMembers().add(member);
 em.persist(member);
 ```
 
-![스크린샷 2024-02-03 오후 5.24.44.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_JaAQYO%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.24.44.png)
-
+<img width="540" alt="스크린샷 2024-02-10 오후 10 29 13" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/00d3982a-52f8-4966-bdf0-7e8af33de33c">
 
 #### 양방향 매핑시 연관관계의 주인에 값을 입력해야 한다. (순수한 객체 관계를 고려하면 항상 양쪽 다 값을 입력해야 한다.)
 
@@ -1312,7 +1319,7 @@ member.setTeam(team);
 em.persist(member);
 ```
 
-![스크린샷 2024-02-03 오후 5.25.18.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_c9WQBH%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%205.25.18.png)
+<img width="539" alt="스크린샷 2024-02-10 오후 10 29 23" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/9a152547-a998-42a9-a450-86fae861525b">
 
 **1. 객체지향적인 관점**
 - `team.getMembers().add(member);`: 역방향에 값을 안넣어줄 시에
@@ -1361,12 +1368,12 @@ public class Member {
 **테이블 구조**
 - 테이블 구조는 이전과 같다.
 
-![스크린샷 2024-02-03 오후 11.25.42.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_Dw9Gh7%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%2011.25.42.png)
+<img width="778" alt="스크린샷 2024-02-10 오후 10 30 09" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/95ef43ac-e93d-4898-8678-388fbf90d50b">
 
 **객체 구조**
 - 참조를 사용하도록 변경
 
-![스크린샷 2024-02-03 오후 11.26.12.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_tKJtfi%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-03%20%EC%98%A4%ED%9B%84%2011.26.12.png)
+<img width="859" alt="스크린샷 2024-02-10 오후 10 30 31" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/bbdadd99-86c2-435b-9198-a00415327a9b">
 
 ---
 
@@ -1408,7 +1415,7 @@ public class Member {
 
 ### 다대일 단방향
 
-![스크린샷 2024-02-04 오후 7.00.51.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_bdTke4%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-04%20%EC%98%A4%ED%9B%84%207.00.51.png)
+<img width="847" alt="스크린샷 2024-02-10 오후 10 38 51" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/4323b44a-1e2e-4e6b-8fae-dc386ab34042">
 
 - DB 설계를 할 때, 테이블의 연관관계가 1:N 이라고 할 때, 항상 N 쪽의 테이블에 외래키(FK) 가 있어야 한다. 안그러면 설계가 잘못된 것이다.
   - EX) Member, Team 테이블이 있고, Team 테이블에 memberId 를 외래키로 설정했을 때, 
@@ -1424,7 +1431,7 @@ public class Member {
 ### 다대일 양방향
 
 **다대일 양방향 예시**
-![스크린샷 2024-02-04 오후 9.58.43.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_ItW5Zn%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-04%20%EC%98%A4%ED%9B%84%209.58.43.png)
+<img width="851" alt="스크린샷 2024-02-10 오후 10 39 15" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/1bc14100-2ff6-4332-9fd2-b76f9998343d">
 
 **다대일 양방향 정리**
 - 외래 키가 있는 쪽이 연관관계의 주인
@@ -1438,7 +1445,7 @@ public class Member {
 - 그러나 있을 수 있는 상황이긴 하다.
 - 표준 스펙에서도 지원하긴 하다.
 
-![스크린샷 2024-02-04 오후 10.25.57.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_9pvbB1%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-04%20%EC%98%A4%ED%9B%84%2010.25.57.png)
+<img width="860" alt="스크린샷 2024-02-10 오후 10 39 41" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/725ba586-3c9b-4a99-a6b2-7ca0d11aa9d4">
 
 - DB 설계상 N 쪽에 외래키(FK) 가 들어갈 수 밖에 없다.
 - 이 상황에선 `Team.members` 가 연관관계의 주인이 되는 것이다.
@@ -1532,7 +1539,7 @@ member table 의 TEAM_ID 를 위해서 update query 가 한번 더 날라가야 
 
 ## 일대다 양방향
 
-![스크린샷 2024-02-05 오후 4.27.28.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_xu7IPh%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%204.27.28.png)
+<img width="853" alt="스크린샷 2024-02-10 오후 10 40 51" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/bac06e4b-0752-4e42-a67b-4f403aee8e37">
 
 ```java
 @Entity
@@ -1578,7 +1585,7 @@ public class Member {
 
 ### 일대일: 주 테이블에 외래 키 단방향
 
-![스크린샷 2024-02-05 오후 5.28.05.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_fl7JhW%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.28.05.png)
+<img width="852" alt="스크린샷 2024-02-10 오후 10 46 17" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/34dc737b-2823-4f96-9d12-68df7de03988">
 
 ```java
 @Entity
@@ -1608,7 +1615,7 @@ public class Member {
 
 ### 일대일: 주 테이블에 외래 키 양방향
 
-![스크린샷 2024-02-05 오후 5.29.36.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_tvXqEj%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.29.36.png)
+<img width="870" alt="스크린샷 2024-02-10 오후 10 48 08" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/0245c8fc-cca9-4a30-ab5e-7d4821679897">
 
 ```java
 @Entity
@@ -1642,7 +1649,7 @@ public class Member {
 
 ### 일대일: 대상 테이블에 외래 키 단방향
 
-![스크린샷 2024-02-05 오후 5.30.16.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_QR32Jl%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.30.16.png)
+<img width="873" alt="스크린샷 2024-02-10 오후 10 48 25" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/8bafa4f5-8473-4f29-b646-06c499a2010b">
 
 **일대일: 대상 테이블에 외래 키 단방향 정리**
 - 단방향 관계는 JPA 지원X
@@ -1650,7 +1657,7 @@ public class Member {
 
 ### 일대일: 대상 테이블에 외래 키 양방향
 
-![스크린샷 2024-02-05 오후 5.31.32.png](..%2F..%2F..%2F..%2F..%2Fvar%2Ffolders%2Fh6%2Fl7c1dk657xz0xzltws65m3fh0000gn%2FT%2FTemporaryItems%2FNSIRD_screencaptureui_1HGJmV%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-02-05%20%EC%98%A4%ED%9B%84%205.31.32.png)
+<img width="863" alt="스크린샷 2024-02-10 오후 10 48 40" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/0371700d-754c-419c-a323-afe4489cd2fa">
 
 **일대일: 대상 테이블에 외래 키 양방향 정리**
 - 사실 일대일 주 테이블에 외래 키 양방향과 매핑 방법은 같음
@@ -1674,7 +1681,7 @@ public class Member {
     - 어차피 Member 에 locker 가 있는지 조회하려면 member 를 조회하고, 또 locker 를 조회하는 select query (where locker.member_id = ?) 를 한번 더 날려야 한다. 
     - 총 2번의 select query 를 날려야 한다.
 
-![OneToOne  eager loading example.png](..%2F..%2F..%2FDownloads%2FOneToOne%20%20eager%20loading%20example.png)
+![OneToOne  eager loading example](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/71fdeece-ad2d-4bc2-a4cf-0f29c30f9202)
 
 > 왜 1:1 일때만 프록시 기능의 한계로 지연 로딩으로 설정해도 항상 즉시 로딩됨 << 이런 현상이 나타는건가요 ? [일대다 양방향 일떈 lazy 확인.]
 
