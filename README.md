@@ -1723,3 +1723,124 @@ public class Member {
 > 예를 들어, List<String> list = new ArrayList<>(); 처럼 선언하고 초기화할 수 있습니다. 이때 list는 데이터가 하나도 없는 비어있는 상태를 가지게 되지만, list 자체는 null이 아닙니다.
 > 
 > 따라서 컬렉션은 항상 지연로딩으로 동작할 수 있습니다.
+
+# 다대다 [N:M]
+
+## 다대다
+
+<img width="524" alt="스크린샷 2024-02-21 오전 1 15 09" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/1b52f725-3e1f-49d5-8cdd-28d27d6692d3">
+
+- 관계형 데이터베이스는 정규화된 테이블 2개로 다대다 관계를 표현할 수 없음
+- **연결 테이블**을 추가해서 일대다, 다대일 관계로 풀어내야함
+
+<img width="585" alt="스크린샷 2024-02-21 오전 1 15 50" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/3cd43af8-937e-4929-a1d4-993e880239e1">
+
+- 객체는 컬렉션을 사용해서 객체 2개로 다대다 관계 가능
+- 객체에서는 Member 도 ProductList 를 가질 수 있고, Product 도 MemberList 를 가질 수 있기 때문에
+- 관계형 데이터베이스와 객체와 차이가 발생하기 때문에
+- ORM 에서는 연결 테이블을 하나 더 만들어서 관계를 풀어나가야 함.
+
+```java
+import hellojpa.Member;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+
+import java.util.ArrayList;
+
+public class Memner {
+  @ManyToMany
+  @JoinTable(name = "MEMBER_PRODUCT")
+  private List<Product> products = new ArrayList<>();
+}
+
+public class Product {
+  @ManyToMany(mappedBy = "products")
+  private List<Member> members = new ArrayList<>();
+}
+```
+
+- **@ManyToMany** 사용
+- **@JoinTable**로 연결 테이블 지정
+- 다대다 매핑: 단방향, 양방향 가능
+
+### 다대다 매핑의 한계
+
+<img width="664" alt="스크린샷 2024-02-21 오전 1 16 35" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/7516f3f9-43d4-48a3-918b-d292aa7ddb8d">
+
+여기서 Member_Product 테이블은 전통적인 방식으로 MEMEBER_ID, PRODUCT_ID 2개의 id 를 묶어서 PK 로 가진다.
+
+MEMBER_ID, PRODUCT_ID 가 각각 PK 이면서, FK 이다.
+
+**그러나 웬만하면 PK 는 의미없는 값인 *@GeneratedValue* 로 값을 세우자!!!! 그러면 유연성이 생긴다!!**
+
+- **편리해 보이지만 실무에서 사용 X**
+- 연결 테이블이 단순히 연결만 하고 끝나지 않음
+- 주문시간, 수량 같은 데이터가 들어올 수 있음
+
+**그러나, 중간테이블에는 매핑 정보 외에 다른 추가적인 정보들을 추가가 불가능하다!!**
+
+**쿼리도 중간 테이블을 조인해서 쿼리가 날라가기 때문에, 이상하게 날라간다.**
+
+### 다대다 한계 극복
+
+<img width="565" alt="스크린샷 2024-02-21 오전 1 18 52" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/7f140840-48d0-400b-a1d9-5f105c49e906">
+
+```java
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+
+@Entity
+public class Member {
+  @OneToMany(mappedBy = "member")
+  private List<MemberProduct> memberProducts = new ArrayList<>();
+}
+
+@Entity
+public class MemberProduct {
+  @Id
+  @GeneratedValue
+  private Long id;
+
+  @ManyToOne
+  @JoinColumn(name = "MEMBER_ID")
+  private Member member;
+
+  @ManyToOne
+  @JoinColumn(name = "PRODUCT_ID")
+  private Product product;
+
+  private int count;
+  private int price;
+
+  private LocalDateTime orderDateTime;
+}
+
+@Entity
+public class Product {
+  @OneToMany(mappedBy = "product")
+  private List<MemberProduct> memberProducts = new ArrayList<>();
+}
+```
+
+- **연결 테이블용 엔티티 추가(연결 테이블을 엔티티로 승격)**
+- **@ManyToMany -> @OneToMany, @ManyToOne**
+- ***일관성 있게 모든 테이블에 *@GeneratedValue* 로 PK 를 깐다!!!!***
+- **실제 운영에서는 애플리케이션이 확장 가능성이 많은데, Id 값이 종속적이게 물리게 된다면 제약사항이 많아져서 확장성에 용이하지 않다.**
+
+### @JoinColumn
+- **외래 키(FK)를 매핑할 때 사용**
+
+<img width="711" alt="스크린샷 2024-02-22 오전 12 59 09" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/25a48861-4810-417e-a8f3-679a37a44e7a">
+
+### @ManyToOne - 주요 속성
+- 다대일 관계 매핑
+
+<img width="705" alt="스크린샷 2024-02-22 오전 12 59 26" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/21e63396-b43b-4884-b8dd-fcf1f0122d34">
+
+### @OneToMany - 주요 속성
+- 일대다 관계 매핑
+
+<img width="703" alt="스크린샷 2024-02-22 오전 12 59 57" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/d3e891d9-5e11-454f-9e3a-1e0529cc4fce">
+
