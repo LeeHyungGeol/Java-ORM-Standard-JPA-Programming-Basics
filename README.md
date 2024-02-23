@@ -2307,3 +2307,68 @@ where
 - 각각의 테이블마다 정산을 돌려야 하는 상황이 발생할 수 있다.
 
 > 결론적으로, 기본적으로 조인전략을 깔고 가지만, 정말 단순하고 데이터의 양도 얼마 안될 때는 단일 테이블 전략을 선택해도 된다. 둘 다 각자의 장단점이 있기 때문에 trade-off 가 있고, 그에 맞게 상황에 맞게 잘 선택하면 된다.
+
+# @MappedSuperclass
+
+## @MappedSuperclass
+공통 매핑 정보가 필요할 때 사용(id, name)
+
+![@MappedSuperclass](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/925e9369-0ded-4e1c-b559-722ddc87a022)
+
+@MappedSuperclass 예시
+
+```java
+import jakarta.persistence.MappedSuperclass;
+
+@MappedSuperclass
+public abstract class BaseEntity {
+  private String createdBy;
+  private LocalDateTime createdAt;
+  private String LastModifiedBy;
+  private LocalDateTime lastModifiedAt;
+}
+
+@Entity
+public class Member extends BaseEntity {}
+
+@Entity
+public class Team extends BaseEntity {}
+```
+
+```
+Hibernate: 
+    create table Member (
+        LOCKER_ID bigint unique,
+        MEMBER_ID bigint not null,
+        TEAM_ID bigint,
+        createdAt timestamp(6),
+        lastModifiedAt timestamp(6),
+        LastModifiedBy varchar(255),
+        USERNAME varchar(255),
+        createdBy varchar(255),
+        primary key (MEMBER_ID)
+    )
+    
+    Hibernate: 
+    create table Team (
+        TEAM_ID bigint not null,
+        createdAt timestamp(6),
+        lastModifiedAt timestamp(6),
+        LastModifiedBy varchar(255),
+        createdBy varchar(255),
+        name varchar(255),
+        primary key (TEAM_ID)
+    )
+```
+
+> createdAt, lastModifiedAt 같은 정보들은 직접 setXXX() 해서 넣는 것이 아닌 전부 자동화할 수 있다. login 되어 있는 session 정보룰 읽어와서 넣어주는 것들을 JPA 의 event(?) 라는 기능으로 할 수 있고, Spring Data JPA 로 넘어가면 Annotation 으로 이것을 더 깔끔하게 처리할 수 있다.
+
+**@MappedSuperclass**
+- 상속관계 매핑X
+- 엔티티X, 테이블과 매핑X
+- 부모 클래스를 상속 받는 **자식 클래스에 매핑 정보만 제공**
+- 조회, 검색 불가(**em.find(BaseEntity) 불가**)
+- ***직접 생성해서 사용할 일이 없으므로 추상 클래스 권장!!!!!***
+- 테이블과 관계 없고, 단순히 엔티티가 공통으로 사용하는 매핑 정보를 모으는 역할
+- 주로 등록일, 수정일, 등록자, 수정자 같은 전체 엔티티에서 공통으로 적용하는 정보를 모을 때 사용
+- **참고: @Entity 클래스는 엔티티(@Entity)나 @MappedSuperclass로 지정한 클래스만 상속 가능**
