@@ -2,8 +2,6 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
-import java.util.concurrent.locks.Lock;
-
 @Entity
 public class Member {
     @Id
@@ -18,12 +16,15 @@ public class Member {
 //    private Long teamId;
 
     @ManyToOne
-    @JoinColumn(name = "TEAN_ID", insertable = false, updatable = false)
+    @JoinColumn(name = "TEAM_ID", insertable = false, updatable = false)
     private Team team;
 
     @OneToOne
     @JoinColumn(name = "LOCKER_ID")
     private Locker locker;
+
+//    @OneToMany(mappedBy = "member")
+//    private List<> members = new ArrayList<>();
 
     public Member() {
     }
