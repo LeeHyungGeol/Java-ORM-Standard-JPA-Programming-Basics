@@ -2374,3 +2374,258 @@ Hibernate:
 - **참고: @Entity 클래스는 엔티티(@Entity)나 @MappedSuperclass로 지정한 클래스만 상속 가능**
 
 > 결론적으로, 처음엔 객체지향적으로 설계를 하고 개발을 하다가, 서비스가 엄청 커지고, 트래픽이 많이 몰리게 된다면 객체를 JSON 으로 말아서 컬럼으로 Item 테이블 같은 곳에 집어넣어도 된다. 그건 정답이 없고 상황에 따라서 맞춰야 한다.
+
+# 프록시와 연관관계 관리
+
+## 프록시
+
+### Member를 조회할 때 Team도 함께 조회해야 할까?
+
+![Member를 조회할 때 Team도 함께 조회해야 할까?](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/a3e47ecf-4468-47a7-8b76-b6f740ba40d7)
+
+**회원과 팀 함께 출력**
+```java
+public void printUserAndTeam(String memberId) {
+    Member member = em.find(Member.class, memberId);
+    Team team = member.getTeam();
+    System.out.println("회원 이름: " + member.getUsername());
+    System.out.println("소속팀: " + team.getName());
+}
+```
+
+**회원만 출력**
+```java
+public void printUser(String memberId) {
+    Member member = em.find(Member.class, memberId);
+    Team team = member.getTeam();
+    System.out.println("회원 이름: " + member.getUsername());
+}
+```
+
+항상 Member 와 Team 을 함께 출력하지 않고, Member 하나만 출력할 수도 있다. 그런데, JPA 입장에서 매번 Member 와 연관관계에 있는 Team 을 같이 가져온다면 이것은 낭비가 될 것이다. ***JPA 는 이러한 문제를 프록시와 지연 로딩으로 해결한다!!!***
+
+### 프록시 기초
+
+![프록시 기초](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/0d487ad8-76fd-4f52-84e2-d36989af1826)
+
+- em.find() vs em.**getReference()**
+- em.find(): 데이터베이스를 통해서 실제 엔티티 객체 조회
+- em.getReference(): **데이터베이스 조회를 미루는 가짜(프록시) 엔티티 객체 조회**
+
+#### em.getReference() 예제
+
+```java
+//          Member findMember = em.find(Member.class, member.getId());
+Member findReference = em.getReference(Member.class, member.getId());
+
+System.out.println("==========findReference 호출 X==========");
+System.out.println("==========findReference 호출 X==========");
+
+System.out.println("==========findReference 호출 O==========");
+System.out.println("findReference.class = " + findReference.getClass());
+System.out.println("findReference.id = " + findReference.getId());
+System.out.println("findReference.name  = " + findReference.getName());
+System.out.println("==========findReference 호출 O==========");
+```
+
+```
+==========findReference 호출 X==========
+==========findReference 호출 X==========
+==========findReference 호출 O==========
+findReference.class = class hellojpa.Member$HibernateProxy$KKHXanwL
+findReference.id = 1
+Hibernate: 
+    select
+       ... 
+    from
+        Member m1_0 
+    left join
+        Team t1_0 
+            on t1_0.TEAM_ID=m1_0.TEAM_ID 
+    where
+        m1_0.MEMBER_ID=?
+findReference.name  = member1
+==========findReference 호출 O==========
+```
+
+- `em.find()` 와 달리 `em.getReference()` 만 했을 때는 select 쿼리가 날라가지 않고,
+- `em.getReference()` 호출 후에, `findReference.getName()` 을 하면 select 쿼리가 날라가는 것을 볼 수 있다.
+- `findReference.getId()` 를 할 때에도, select 쿼리는 호출되지 않는다. `em.getReference(Member.class, member.getId())` 를 했을 때, 메서드에 값을 넣어줬기 때문이다.
+- `findReference.class = class hellojpa.Member$HibernateProxy$KKHXanwL`
+  - getReference() 를 하면, Hibernate 가 강제로 만든 가짜 클래스라는 얘기, Proxy class
+
+### 프록시 특징
+
+![프록시 특징](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/d0dc635a-d788-40bf-86e8-6af69764dbe7)
+
+- 실제 클래스를 상속 받아서 만들어짐
+- 실제 클래스와 겉 모양이 같다.
+- 사용하는 입장에서는 진짜 객체인지 프록시 객체인지 구분하지 않고 사용하면 됨(이론상)
+
+![프록시 특징2](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/3314242c-ccd8-45aa-9103-4875bda47ddb)
+
+- 프록시 객체는 실제 객체의 참조(target)를 보관
+- 프록시 객체를 호출하면 프록시 객체는 실제 객체의 메소드 호출
+
+### 프록시 객체의 초기화
+
+![프록시 객체의 초기화](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/6b3b5efa-e77a-467b-9428-fc22ce709d5b)
+
+```java
+Member member = em.getReference(Member.class, "id1");
+member.getName();
+```
+
+**영속성 컨텍스트에 초기화 요청을 하는 것이 중요. `Member target = null` 값을 채우는 것이다.**
+
+### 프록시의 특징 (이게 중요하다!!!!)
+
+```java
+Member findReference = em.getReference(Member.class, member.getId());
+
+System.out.println("before findReference = " + findReference.getClass());
+System.out.println("findReference.id = " + findReference.getId());
+System.out.println("findReference.name  = " + findReference.getName());
+System.out.println("after findReference = " + findReference.getClass());
+```
+
+```
+before findReference = class hellojpa.Member$HibernateProxy$JH7TDBfl
+findReference.id = 1
+Hibernate: 
+    select ...
+findReference.name  = member1
+after findReference = class hellojpa.Member$HibernateProxy$JH7TDBfl
+```
+
+- **프록시 객체는 처음 사용할 때 한 번만 초기화**
+- **프록시 객체를 초기화 할 때, 프록시 객체가 실제 엔티티로 바뀌는 것은 아님**, 초기화되면 프록시 객체를 통해서 실제 엔티티에 접근 가능
+
+```java
+public static void main(String[] args) {
+  Member m1 = em.find(Member.class, member2.getId());
+  Member m2 = em.getReference(Member.class, member2.getId());
+  equalCompare(m1, m2);
+  instanceOfComapre(m1, m2);
+}
+
+private static void equalCompare(Member m1, Member m2) {
+  System.out.println("m1 == m2: " + (m1.getClass() == m2.getClass()));
+}
+
+private static void instanceOfCompare(Member m1, Member m2) {
+  System.out.println("m1 == m2: " + (m1 instanceof Member));
+  System.out.println("m1 == m2: " + (m2 instanceof Member));
+}
+```
+
+**프록시 객체는 원본 엔티티를 상속받음, 따라서 *타입 체크시 주의해야함* (== 비교 실패, 대신 *instance of 사용*)**
+
+```java
+// member1 객체 생성 및 영속화
+em.flush();
+em.clear();
+
+Member m = em.find(Member.class, member1.getId());
+System.out.println("m.class = " + m.getClass());
+
+Member ref = em.getReference(Member.class, member1.getId());
+System.out.println("ref.class = " + ref.getClass());
+
+System.out.println("m == ref: " + (m == ref));
+```
+
+```
+Hibernate: 
+    select ...
+m.class = class hellojpa.Member
+ref.class = class hellojpa.Member
+m == ref: true
+```
+
+- 영속성 컨텍스트에 찾는 엔티티가 이미 있으면 em.getReference()를 호출해도 실제 엔티티 반환
+  1. **JPA 에서는 _같은_ 영속성 컨텍스트의 1차 컨텍스트 내에서 *PK 가 같은 것*을 가져와서 *== 비교*를 하면 항상 true 를 반환해야 한다. -> repeatable read 보장** 
+     - **repeatable read: 한 트랜잭션 내에서 같은 데이터를 반복해서 읽어도 처음에 읽었던 데이터와 동일한 데이터를 보게 됩니다.**
+  2. 이미 영속성 컨텍스트의 1차 캐시에 member 객체가 존재하는데, 그것을 Proxy 로 갖고 와봐야 아무 이점이 없다.
+
+```java
+// member1 객체 생성 및 영속화
+em.flush();
+em.clear();
+
+Member refMember = em.getReference(Member.class, member1.getId());
+System.out.println("refMember.class = " + refMember.getClass());
+
+Member findMember = em.find(Member.class, member1.getId());
+System.out.println("findMember.class = " + findMember.getClass());
+
+System.out.println("m == ref: " + (refMember == findMember));
+```
+```
+refMember.class = class hellojpa.Member$HibernateProxy$VyixtOQK
+Hibernate: 
+    select ...
+findMember.class = class hellojpa.Member$HibernateProxy$VyixtOQK
+m == ref: true
+```
+
+JPA 에서는 _같은_ 영속성 컨텍스트의 1차 컨텍스트 내에서 *PK 가 같은 것*을 가져와서 *== 비교*를 하면 항상 true 를 반환해야 하기 때문에
+- em.reference() 이후에 em.find() 를 했을 때, 영속성 컨텍스트의 동일성을 보장하기 위해 해당 프록시 객체를 그대로 반환하되, **내부에서 프록시를 한번 초기화 해준다.**
+- 처음이 Proxy 객체이면, `em.find()` 로 조회해도 Proxy 객체가 나올 수 있다.
+- 실제 개발을 할 때, 이 객체가 Proxy 이든 아니든, 문제가 없게 개발하는 것이 중요하다.
+
+```java
+Member refMember = em.getReference(Member.class, member1.getId());
+
+em.detach(refMember);
+// em.clear();
+// em.close(); 3가지 메서드 모두 exception 발생
+
+System.out.println("refMember = " + refMember);
+```
+
+```
+em.detach(member); em.clear(); 수행시에 exception
+org.hibernate.LazyInitializationException: could not initialize proxy [hellojpa.Member#1] - no Session
+
+em.close(); 수행시에 exception
+java.lang.IllegalStateException: Session/EntityManager is closed
+```
+
+***영속성 컨텍스트의 도움을 받을 수 없는 준영속 상태(detach)일 때, 프록시를 초기화하면 문제 발생 (하이버네이트는 org.hibernate.LazyInitializationException 예외를 터트림)***
+- 실무에서 이와 같은 문제가 정말 많이 발생!!!!!
+- 트랜잭션이 시작하고 끝날 때, 영속성 컨텍스트도 시작하고 끝이 난다.
+  - 트랜잭션이 끝나고 나서 Proxy 를 조회하면 `no Session` 에러가 발생한다.
+
+
+### 프록시 확인
+
+```java
+ Member refMember = em.getReference(Member.class, member1.getId());
+System.out.println("refMember.getClass() = " + refMember.getClass()); // Proxy
+System.out.println("isLoaded = " + emf.getPersistenceUnitUtil().isLoaded(refMember));
+```
+
+- **프록시 인스턴스의 초기화 여부 확인** 
+  - `PersistenceUnitUtil.isLoaded(Object entity)`
+
+```java
+Member refMember = em.getReference(Member.class, member1.getId());
+System.out.println("refMember.getClass().getName() = " + refMember.getClass().getName()); // Proxy
+```
+
+- **프록시 클래스 확인 방법** 
+  - `entity.getClass().getName() 출력(..javasist.. or HibernateProxy…)`
+
+```java
+Member refMember = em.getReference(Member.class, member1.getId());
+Hibernate.initialize(refMember);
+// refMember.getName(); // 이것도 강제 초기화하는 방법이 맞긴 함. Proxy 객체의 내부 메서드를 호출하는 것이기 때문에
+```
+
+- **프록시 강제 초기화** 
+- Hibernate 에서 제공함
+  - `org.hibernate.Hibernate.initialize(entity);`
+- 참고: JPA 표준은 강제 초기화 없음 
+  - 강제 호출: `member.getName()`
+
