@@ -2315,7 +2315,7 @@ where
 
 ![@MappedSuperclass](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/925e9369-0ded-4e1c-b559-722ddc87a022)
 
-@MappedSuperclass 예시
+### @MappedSuperclass 예시
 
 ```java
 import jakarta.persistence.MappedSuperclass;
@@ -2372,3 +2372,5 @@ Hibernate:
 - 테이블과 관계 없고, 단순히 엔티티가 공통으로 사용하는 매핑 정보를 모으는 역할
 - 주로 등록일, 수정일, 등록자, 수정자 같은 전체 엔티티에서 공통으로 적용하는 정보를 모을 때 사용
 - **참고: @Entity 클래스는 엔티티(@Entity)나 @MappedSuperclass로 지정한 클래스만 상속 가능**
+
+> 결론적으로, 처음엔 객체지향적으로 설계를 하고 개발을 하다가, 서비스가 엄청 커지고, 트래픽이 많이 몰리게 된다면 객체를 JSON 으로 말아서 컬럼으로 Item 테이블 같은 곳에 집어넣어도 된다. 그건 정답이 없고 상황에 따라서 맞춰야 한다.
