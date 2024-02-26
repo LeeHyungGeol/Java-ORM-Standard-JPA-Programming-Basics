@@ -3486,10 +3486,7 @@ b.setCity("New");
 **값 타입은 그냥 깔끔하게 불변으로 만들어버리자!!! 불변이라는 작은 제약으로 부작용이라는 큰 재앙을 막을 수 있다.**
 
 
-# 값 타입의 비교
-
-
-# 값 타입의 비교
+## 값 타입의 비교
 
 - 값 타입: 인스턴스가 달라도 그 안에 값이 같으면 같은 것으로 봐야 함
 
@@ -3498,16 +3495,49 @@ int a = 10;
 int b = 10;
 ```
 ```java
-Address a = new Address(“서울시”)
-Address b = new Address(“서울시”)
+Address a = new Address("서울시");
+Address b = new Address("서울시");
 ```
 
-# 값 타입의 비교
+- **동일성(identity) 비교** : 인스턴스의 참조 값을 비교, `==` 사용
+- **동등성(equivalence) 비교** : 인스턴스의 값을 비교, `equals()` 사용
+- 값 타입은 `a.equals(b)`를 사용해서 **동등성 비교**를 해야 함
+***값 타입의 `equals()` 메소드를 적절하게 재정의하자!!!(주로 모든 필드 사용)***
 
-- **동일성(identity) 비교** : 인스턴스의 참조 값을 비교, == 사용
-- **동등성(equivalence) 비교** : 인스턴스의 값을 비교, equals() 사용
-- 값 타입은 a.equals(b)를 사용해서 동등성 비교를 해야 함
-- 값 타입의 equals() 메소드를 적절하게 재정의(주로 모든 필드 사용)
+**EX) equals() and hashCode()**
+
+```java
+import hellojpa.Address;
+import jakarta.persistence.Embeddable;
+
+@Embeddable
+public class Address {
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Address address = (Address) o;
+    return Objects.equals(city, address.city) && Objects.equals(street, address.street) && Objects.equals(zipcode, address.zipcode);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(city, street, zipcode);
+  }
+}
+
+public static void main(String[] args) {
+  Address address1 = new Address("city", "street", "100000");
+  Address address2 = new Address("city", "street", "100000");
+
+  Address.equals(address2);
+}
+```
+
+> 위의 예시에서는 city, street, zipcode 등 field 값들에 직접 접근했지만, 
+> 나중에 Proxy, 다형성 등을 사용하게 되면, getter 를 통해 field 를 가져오는 것으로 변경해야 한다.
+
+![Use getters during code generation](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/ea4cba08-1034-41d6-9af3-6de1dd893f2f)
 
 # 값 타입 컬렉션
 
