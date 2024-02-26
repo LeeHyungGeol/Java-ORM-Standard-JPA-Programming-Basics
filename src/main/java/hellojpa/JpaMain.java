@@ -1,7 +1,8 @@
 package hellojpa;
 
 import jakarta.persistence.*;
-import org.hibernate.Hibernate;import java.util.List;
+
+import java.util.List;
 
 public class JpaMain {
 
@@ -15,30 +16,25 @@ public class JpaMain {
       tx.begin();
 
       try {
-        Team team1 = new Team();
-        team1.setName("team1");
-        em.persist(team1);
+        CascadeChild child1 = new CascadeChild();
+        CascadeChild child2 = new CascadeChild();
 
-        Team team2 = new Team();
-        team2.setName("team1");
-        em.persist(team2);
+        CascadeParent parent = new CascadeParent();
+        parent.addChild(child1);
+        parent.addChild(child2);
 
-        Member member1 = new Member();
-        member1.setName("member1");
-        member1.setTeam(team1);
-        em.persist(member1);
-
-        Member member2 = new Member();
-        member2.setName("member2");
-        member2.setTeam(team2);
-        em.persist(member2);
+        em.persist(parent);
 
         em.flush();
         em.clear();
 
-//        Member m = em.find(Member.class, member1.getId());
+        System.out.println("===== select CascadeParent =====");
+        CascadeParent p = em.find(CascadeParent.class, parent.getId());
+        System.out.println("===== select CascadeParent =====");
 
-        List<Member> members = em.createQuery("select m from Member m", Member.class).getResultList();
+        System.out.println("===== delete CascadeChild =====");
+        em.remove(p);
+        System.out.println("===== delete CascadeChild =====");
 
         tx.commit();
       } catch (Exception e) {

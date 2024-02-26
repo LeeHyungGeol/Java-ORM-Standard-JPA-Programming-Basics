@@ -2903,7 +2903,7 @@ Hibernate:
   - jpql 은 먼저 그대로 sql 로 번역을 한다.
     1. 먼저 member 만 db 에서 가져온다.
     2. team 이 EAGER 로 설정되어 있기 때문에, 각 member 에 대한 team 도 다 가져와야 한다.
-    3. select team sql 이 db 에 한번 더 날리게 된다.
+    3. **select team sql 이 db 에 한번 더 날리게 된다!!!!!**
 
 - **@ManyToOne, @OneToOne은 기본이 즉시 로딩**
   - **-> LAZY로 설정**
@@ -2914,7 +2914,7 @@ Hibernate:
 일단 모든 연관관계를 LAZY 로 전부 설정한다.
 1. `fetch join` 을 통해 필요할 때 값을 가져온다.
 2. `@EntityGraph` 어노테이션을 통해 값을 가져온다.
-3. batch size 를 통해 해결, 쿼리가 한번 더 날라가긴 한다.(대신 N+1 이 아닌 1+1 이 된다.)
+3. `batch size` 를 통해 해결, 쿼리가 한번 더 날라가긴 한다.(대신 N+1 이 아닌 1+1 이 된다.)
 
 
 ## 지연 로딩 활용
@@ -2938,79 +2938,261 @@ Hibernate:
 - **즉시 로딩은 상상하지 못한 쿼리가 나간다.**
 
 
-# 영속성 전이: CASCADE
-
-
-# 영속성 전이: CASCADE
+## 영속성 전이: CASCADE
 
 ![프록시와 연관관계 관리10](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/2965d528-b66b-4019-b41d-4adae4f06eb4)
 
-- 특정 엔티티를 영속 상태로 만들 때 연관된 엔티티도 함께 영속 상태로 만들도 싶을 때
-
+- **특정 엔티티를 영속 상태(`persist`)로 만들 때 연관된 엔티티도 함께 영속 상태(`persist`)로 만들고 싶을 때 사용한다.**
+  - **즉시 로딩(EAGER), 지연로딩(LAZY)과 같은 연관관계 설정과 전혀 관계가 없다!!!**
 - 예: 부모 엔티티를 저장할 때 자식 엔티티도 함께 저장.
+- **한다미로 부모를 저장(persist)할 때, 자식도 다 같이 저장(persist)하고 싶을 때 사용한다!!**
 
+```java
+public static void main(String[] args) {
+  CascadeChild child1 = new CascadeChild();
+  CascadeChild child2 = new CascadeChild();
 
-# 영속성 전이: 저장
+  CascadeParent parent = new CascadeParent();
+  parent.addChild(child1);
+  parent.addChild(child2);
 
+  em.persist(parent);
+  em.persist(child1);
+  em.persist(child2);
+}
+```
+
+**원래의 코드에서는 em.persist() 를 객체 하나하나마다 다 호출해줬어야 했다.**
+- 이때, em.persist(parent) 만 호출하면 child1, child2 는 저장되지 않는다.
+
+```java
+import jakarta.persistence.Entity;
+
+@Entity
+public class CascadeParent {
+  @OneToMany(mappedBy = "parent", cascade = CascadeType.PERSIST)
+  private List<CascadeChild> childList = new ArrayList<>();
+}
+
+public static void main(String[] args) {
+  CascadeChild child1 = new CascadeChild();
+  CascadeChild child2 = new CascadeChild();
+
+  CascadeParent parent = new CascadeParent();
+  parent.addChild(child1);
+  parent.addChild(child2);
+
+  em.persist(parent);
+}
+```
+
+```
+Hibernate: 
+    /* insert for
+        hellojpa.CascadeParent */insert 
+    into
+        CascadeParent (name, id) 
+    values
+        (?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.CascadeChild */insert 
+    into
+        CascadeChild (name, parent_id, id) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.CascadeChild */insert 
+    into
+        CascadeChild (name, parent_id, id) 
+    values
+        (?, ?, ?)
+```
+
+**`CascadeType.PERSIST` 설정을 하고나니, em.persist(parent); 만 하더라도 child1, child2 가 insert 되는 것을 볼 수 있다.**
+- parent 를 persist 할 때, 밑에 있는 List<CascadeChild> 도 다 persist 를 해줄거야가 ***cascade*** 인 것이다!!!
+- **한마디로, 연쇄작용이다!!!**
+
+### 영속성 전이: 저장
 
 ![프록시와 연관관계 관리11](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/7b811735-7756-4e43-8bd6-b58b4abb76e6)
 
 ```
-@OneToMany(mappedBy="parent", cascade= CascadeType.PERSIST )
+@OneToMany(mappedBy="parent", cascade= CascadeType.PERSIST)
 ```
 
-# 영속성 전이: CASCADE - 주의!
+### 영속성 전이: CASCADE - 주의!
 
-- 영속성 전이는 연관관계를 매핑하는 것과 아무 관련이 없음
+- **영속성 전이(cascade)는 연관관계를 매핑하는 것과 아무 관련이 없음!!!**
+- 엔티티를 영속화할 때 연관된 엔티티도 **함께 영속화**하는 편리함을 제공할 뿐
 
-- 엔티티를 영속화할 때 연관된 엔티티도 함께 영속화하는 편리함을 제공할 뿐
+**child 와 같은 엔티티의 소유자가 parent 하나일 때만 cascade 를 사용하자!!!!!!**
+- 예를 들어, member 가 child(member -> child) 와 연관관계가 있을 때는 쓰면 안된다.
+  1. **lifeCycle 이 똑같을 때**, 예를 들어 parent 와 child 의 lifeCycle 이 유사할 때 
+  2. **단일 엔티티에 종속적일 때(단일 소유자일 때)**, 예를 들어, member 나 다른 entity 에서 child 를 소유한다면 cascade 를 사용하면 안된다.
 
+### CASCADE의 종류
 
-# CASCADE의 종류
+lifeCycle 을 전부 맞춰야 할 때는 `ALL` 을 하고, 저장할 때만 같이 저장하고 싶을 때는 `PERSIST` 를 하자. 보통 이 2개의 옵션을 사용한다.
 
-- ALL: 모두 적용
-- PERSIST: 영속
-- REMOVE: 삭제
+- **ALL: 모두 적용**
+- **PERSIST: 영속**
+- **REMOVE: 삭제**
 - MERGE: 병합
 - REFRESH: REFRESH
 - DETACH: DETACH
 
 
-# 고아 객체
+## 고아 객체
 
+- **고아 객체 제거: 부모 엔티티와 연관관계가 끊어진 자식 엔티티를 자동으로 삭제**
+- **`orphanRemoval = true`**
 
-# 고아 객체
+```java
+import jakarta.persistence.Entity;
 
-- 고아 객체 제거: 부모 엔티티와 연관관계가 끊어진 자식 엔티티를 자동으로 삭제
-- **orphanRemoval = true**
-- Parent parent1 = em.find(Parent.class, id); parent1.getChildren().remove(0); //자식 엔티티를 컬렉션에서 제거
-- DELETE FROM CHILD WHERE ID=?
+@Entity
+public class CascadeParent {
+  @OneToMany(mappedBy = "parent", cascade = CascadeType.PERSIST, orphanRemoval = true)
+  private List<CascadeChild> childList = new ArrayList<>();
+}
 
+public static void main(String[] args) {
+  CascadeParent p = em.find(CascadeParent.class, parent.getId());
+  p.getChildList().remove(0);
+}
+```
 
-# 고아 객체 - 주의
+```
+Hibernate: 
+    select
+        cp1_0.id,
+        cp1_0.name 
+    from
+        CascadeParent cp1_0 
+    where
+        cp1_0.id=?
+Hibernate: 
+    select
+        cl1_0.parent_id,
+        cl1_0.id,
+        cl1_0.name 
+    from
+        CascadeChild cl1_0 
+    where
+        cl1_0.parent_id=?
+Hibernate: 
+    /* delete for hellojpa.CascadeChild */delete 
+    from
+        CascadeChild 
+    where
+        id=?
+```
+
+**자식 엔티티를 컬렉션에서 제거**
+- **컬렉션에서 제거한 객체는 자동적으로 delete 쿼리가 날라가서 삭제가 된다.**
+
+### 고아 객체 - 주의
 
 - 참조가 제거된 엔티티는 다른 곳에서 참조하지 않는 고아 객체로 보고 삭제하는 기능
 - **참조하는 곳이 하나일 때 사용해야함!**
-- **특정 엔티티가 개인 소유할 때 사용**
+  - **특정 엔티티가 개인 소유할 때 사용**
+  - cascade 와 마찬가지로 단일 entity 에 종속적일 때만 사용하자!!
 - @OneToOne, @OneToMany만 가능
-- 참고: 개념적으로 부모를 제거하면 자식은 고아가 된다. 따라서 고아 객체 제거 기능을 활성화 하면, 부모를 제거할 때 자식도 함께 제거된다. 이것은 CascadeType.REMOVE처럼 동작한다.
+
+```java
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+
+@Entity
+public class CascadeParent {
+  @OneToMany(mappedBy = "parent", cascade = CascadeType.PERSIST, orphanRemoval = true)
+  private List<CascadeChild> childList = new ArrayList<>();
+}
+
+// 이렇게 설정해도 위와 같은 효과를 얻을 수 있다.
+@Entity
+public class CascadeParent {
+  @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+  private List<CascadeChild> childList = new ArrayList<>();
+}
+
+public static void main(String[] args) {
+  System.out.println("===== select CascadeParent =====");
+  CascadeParent p = em.find(CascadeParent.class, parent.getId());
+  System.out.println("===== select CascadeParent =====");
+
+  System.out.println("===== delete CascadeChild =====");
+  em.remove(p);
+  System.out.println("===== delete CascadeChild =====");
+}
+```
+
+```
+===== select CascadeParent =====
+Hibernate: 
+    select
+        cp1_0.id,
+        cp1_0.name 
+    from
+        CascadeParent cp1_0 
+    where
+        cp1_0.id=?
+===== select CascadeParent =====
+===== delete CascadeChild =====
+Hibernate: 
+    select
+        cl1_0.parent_id,
+        cl1_0.id,
+        cl1_0.name 
+    from
+        CascadeChild cl1_0 
+    where
+        cl1_0.parent_id=?
+===== delete CascadeChild =====
+Hibernate: 
+    /* delete for hellojpa.CascadeChild */delete 
+    from
+        CascadeChild 
+    where
+        id=?
+Hibernate: 
+    /* delete for hellojpa.CascadeChild */delete 
+    from
+        CascadeChild 
+    where
+        id=?
+Hibernate: 
+    /* delete for hellojpa.CascadeParent */delete 
+    from
+        CascadeParent 
+    where
+        id=?
+```
+
+- 참고: 개념적으로 부모를 제거하면 자식은 고아가 된다. 따라서 고아 객체 제거 기능을 활성화 하면, 부모를 제거할 때 자식도 함께 제거된다. 
+  - `em.remove(parent);` 를 하면, 
+  - parent 에 대한 List<child> 를 select 해오고, 그것들을 delete 한다.
+  - 그런 다음 마지막에 parent 도 삭제한다.
+- 이것은 `CascadeType.REMOVE` 처럼 동작한다.
 
 
-# 영속성 전이 + 고아 객체, 생명주기
-
-
-# 영속성 전이 + 고아 객체, 생명주기
+### 영속성 전이 + 고아 객체, 생명주기
 
 - **CascadeType.ALL + orphanRemoval=true**
 - 스스로 생명주기를 관리하는 엔티티는 em.persist()로 영속화, em.remove()로 제거
-- 두 옵션을 모두 활성화 하면 부모 엔티티를 통해서 자식의 생명주기를 관리할 수 있음
-- 도메인 주도 설계(DDD)의 Aggregate Root개념을 구현할 때 유용
+- 두 옵션을 모두 활성화 하면 **부모 엔티티**를 통해서 **자식의 생명주기**를 관리할 수 있음
+- ***도메인 주도 설계(DDD)의 Aggregate Root 개념을 구현할 때 유용***
+  - repository 는 aggregate root 만 컨택하고, 나머지는 repository 를 만들지 않는 것이 더 유용하다.
+  - 나머지들은 aggregate root 를 통해 생명주기를 관리한다.
 
 
-# 실전 예제 - 5.연관관계 관리
+## 실전 예제 - 5.연관관계 관리
 
 
-# 글로벌 페치 전략 설정
+### 글로벌 페치 전략 설정
 
 - 모든 연관관계를 지연 로딩으로
 
