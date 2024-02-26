@@ -2629,10 +2629,10 @@ Hibernate.initialize(refMember);
 - 참고: JPA 표준은 강제 초기화 없음 
   - 강제 호출: `member.getName()`
 
-# 즉시 로딩과 지연 로딩
+## 즉시 로딩과 지연 로딩
 
 
-# Member를 조회할 때 Team도 함께 조회해야 할까?
+### Member를 조회할 때 Team도 함께 조회해야 할까?
 
 ![프록시와 연관관계 관리1](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/e66b7852-1574-4671-989e-ed32503c45a9)
 
@@ -2642,89 +2642,282 @@ Hibernate.initialize(refMember);
 println(member.getName());
 ```
 
-# 지연 로딩 LAZY을 사용해서 프록시로 조회
+### 지연 로딩 LAZY을 사용해서 프록시로 조회
 
-```
+**`fetch = FetchType.LAZY`**
+
+```java
 @Entity
 public class Member {
 
-@Id
-@GeneratedValue
-private Long id;
+  @Id
+  @GeneratedValue
+  private Long id;
 
-@Column(name = "USERNAME")
-private String name;
+  @Column(name = "USERNAME")
+  private String name;
 
-@ManyToOne( **fetch = FetchType.** **_LAZY_** ) //**
-@JoinColumn(name = "TEAM_ID")
-private Team team;
-..
+  @ManyToOne(fetch = FetchType.LAZY) //**
+  @JoinColumn(name = "TEAM_ID")
+  private Team team;
+  ...
+}
+```
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("team1");
+  em.persist(team);
+
+  Member member = new Member();
+  member.setName("member1");
+  member.setTeam(team);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  Member m = em.find(Member.class, member.getId());
+
+  System.out.println("team.class = " + m.getTeam().getClass());
+
+  System.out.println("==========");
+  System.out.println("team.name = " + m.getTeam().getName());
+  System.out.println("team.class = " + m.getTeam().getClass());
+  System.out.println("==========");
 }
 ```
 
-# 지연 로딩
+```
+Hibernate: 
+    select
+        m1_0.MEMBER_ID,
+        m1_0.createdAt,
+        m1_0.createdBy,
+        m1_0.lastModifiedAt,
+        m1_0.lastModifiedBy,
+        m1_0.USERNAME,
+        m1_0.TEAM_ID 
+    from
+        Member m1_0 
+    where
+        m1_0.MEMBER_ID=?
+team.class = class hellojpa.Team$HibernateProxy$omkuRKXX
+==========
+Hibernate: 
+    select
+        t1_0.TEAM_ID,
+        t1_0.createdAt,
+        t1_0.createdBy,
+        t1_0.lastModifiedAt,
+        t1_0.lastModifiedBy,
+        t1_0.name 
+    from
+        Team t1_0 
+    where
+        t1_0.TEAM_ID=?
+team.name = team1
+team.class = class hellojpa.Team$HibernateProxy$omkuRKXX
+==========
+```
+
+- 처음에는 member 에 해당하는 값만 가져오게 된다. **team 을 proxy 로 가져온다.**
+- m.getTEam().getName() 을 하자 (team을 실제로 사용하는 시점에)team 을 select 해온다.
 
 ![프록시와 연관관계 관리2](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/eac94996-aa83-4e3f-990f-f461060b04e5)
 
-# 지연 로딩 LAZY을 사용해서 프록시로 조회
+실제 팀을 사용하는 시점에서 초기화한다.
+- -> `team.getName()` team 객체 내부가 빈 껍데기이기 때문에 getName() 과 같은 행위를 할 때 객체(여기서는 team) 을 초기화한다.
 
 ![프록시와 연관관계 관리3](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/75c83469-a044-40e1-ba5a-3b941aba364b)
 
 
-# Member와 Team을 자주 함께 사용한다면?
+### Member와 Team을 자주 함께 사용한다면?
 
 ![프록시와 연관관계 관리4](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/91febed2-0c26-498f-92a9-9d8473b528a2)
 
-# 즉시 로딩 EAGER를 사용해서 함께 조회
+### 즉시 로딩 EAGER를 사용해서 함께 조회
 
-```
+**`fetch = FetchType.EAGER`**
+
+```java
 @Entity
-public class Member {
-
-@Id
-@GeneratedValue
-private Long id;
-
-@Column(name = "USERNAME")
-private String name;
-
-@ManyToOne( **fetch = FetchType.** **_EAGER_** ) //**
-@JoinColumn(name = "TEAM_ID")
-private Team team;
-..
+public class Member { 
+  @Id 
+  @GeneratedValue 
+  private Long id;
+  
+  @Column(name = "USERNAME") 
+  private String name;
+  
+  @ManyToOne(fetch = FetchType.EAGER) //**
+  @JoinColumn(name = "TEAM_ID") 
+  private Team team;
+  ...
 }
 ```
 
-# 즉시 로딩
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("team1");
+  em.persist(team);
+
+  Member member = new Member();
+  member.setName("member1");
+  member.setTeam(team);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  Member m = em.find(Member.class, member.getId());
+
+  System.out.println("team.class = " + m.getTeam().getClass());
+
+  System.out.println("==========");
+  System.out.println("team.name = " + m.getTeam().getName());
+  System.out.println("team.class = " + m.getTeam().getClass());
+  System.out.println("==========");
+}
+```
+
+```
+Hibernate: 
+    select
+        m1_0.MEMBER_ID,
+        m1_0.createdAt,
+        m1_0.createdBy,
+        m1_0.lastModifiedAt,
+        m1_0.lastModifiedBy,
+        m1_0.USERNAME,
+        t1_0.TEAM_ID,
+        t1_0.createdAt,
+        t1_0.createdBy,
+        t1_0.lastModifiedAt,
+        t1_0.lastModifiedBy,
+        t1_0.name 
+    from
+        Member m1_0 
+    left join
+        Team t1_0 
+            on t1_0.TEAM_ID=m1_0.TEAM_ID 
+    where
+        m1_0.MEMBER_ID=?
+team.class = class hellojpa.Team
+==========
+team.name = team1
+team.class = class hellojpa.Team
+==========
+```
+
+- EAGER 이기 때문에, member 와 team 을 한꺼번에 가져온다.
+- 한꺼번에 가져오기 때문에, team 이 proxy 가 아닌 진짜 team 엔티티이다.
 
 ![프록시와 연관관계 관리5](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/a6b049ec-9323-4d58-b217-5facf816e11e)
 
 
-# 즉시 로딩(EAGER), Member조회시 항상 Team도 조회
+### 즉시 로딩(EAGER), Member조회시 항상 Team도 조회
 
 ![프록시와 연관관계 관리6](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/0a6a628d-da2c-4d3a-b64c-1dacca5532ca)
 
-JPA 구현체는 가능하면 조인을 사용해서 SQL 한번에 함께 조회
+JPA 구현체는 가능하면 조인(JOIN)을 사용해서 SQL 한번에 함께 조회
 
 
 # 프록시와 즉시로딩 주의
 
 - 가급적 지연 로딩만 사용(특히 실무에서)
+- **즉시 로딩을 적용하면 예상하지 못한 SQL이 발생**
 
-- 즉시 로딩을 적용하면 예상하지 못한 SQL이 발생
+```java
+public static void main(String[] args) {
+  Team team1 = new Team();
+  team1.setName("team1");
+  em.persist(team1);
 
-- 즉시 로딩은 JPQL에서 N+1 문제를 일으킨다.
+  Team team2 = new Team();
+  team2.setName("team1");
+  em.persist(team2);
+
+  Member member1 = new Member();
+  member1.setName("member1");
+  member1.setTeam(team1);
+  em.persist(member1);
+
+  Member member2 = new Member();
+  member2.setName("member2");
+  member2.setTeam(team2);
+  em.persist(member2);
+
+  em.flush();
+  em.clear();
+
+//        Member m = em.find(Member.class, member1.getId());
+
+  List<Member> members = em.createQuery("select m from Member m", Member.class).getResultList();
+}
+```
+
+```
+ /* select
+        m 
+    from
+        Member m */ select
+            m1_0.MEMBER_ID,
+            m1_0.createdAt,
+            m1_0.createdBy,
+            m1_0.lastModifiedAt,
+            m1_0.lastModifiedBy,
+            m1_0.USERNAME,
+            m1_0.TEAM_ID 
+        from
+            Member m1_0
+Hibernate: 
+    select
+        t1_0.TEAM_ID,
+        t1_0.createdAt,
+        t1_0.createdBy,
+        t1_0.lastModifiedAt,
+        t1_0.lastModifiedBy,
+        t1_0.name 
+    from
+        Team t1_0 
+    where
+        t1_0.TEAM_ID=?
+Hibernate: 
+    select
+        t1_0.TEAM_ID,
+        t1_0.createdAt,
+        t1_0.createdBy,
+        t1_0.lastModifiedAt,
+        t1_0.lastModifiedBy,
+        t1_0.name 
+    from
+        Team t1_0 
+    where
+        t1_0.TEAM_ID=?
+```
+
+- **즉시 로딩**은 JPQL에서 ***N+1 문제***를 일으킨다.
+  - em.find() 는 PK 로 조회하고, JPA 에서 내부적으로 최적화를 한다.
+  - jpql 은 먼저 그대로 sql 로 번역을 한다.
+    1. 먼저 member 만 db 에서 가져온다.
+    2. team 이 EAGER 로 설정되어 있기 때문에, 각 member 에 대한 team 도 다 가져와야 한다.
+    3. select team sql 이 db 에 한번 더 날리게 된다.
 
 - **@ManyToOne, @OneToOne은 기본이 즉시 로딩**
-- **-> LAZY로 설정**
-
+  - **-> LAZY로 설정**
 - @OneToMany, @ManyToMany는 기본이 지연 로딩
 
+### N+1 문제 해결방법
 
-# 지연 로딩 활용
+일단 모든 연관관계를 LAZY 로 전부 설정한다.
+1. `fetch join` 을 통해 필요할 때 값을 가져온다.
+2. `@EntityGraph` 어노테이션을 통해 값을 가져온다.
+3. batch size 를 통해 해결, 쿼리가 한번 더 날라가긴 한다.(대신 N+1 이 아닌 1+1 이 된다.)
 
 
-# 지연 로딩 활용
+## 지연 로딩 활용
 
 ![프록시와 연관관계 관리7](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/e7a79f2d-65b8-46a7-bab4-57de4aec2a17)
 
@@ -2732,25 +2925,16 @@ JPA 구현체는 가능하면 조인을 사용해서 SQL 한번에 함께 조회
 - **Member** 와 **Order** 는 가끔 사용 -> **지연 로딩**
 - **Order** 와 **Product** 는 자주 함께 사용 -> **즉시 로딩**
 
-
-# 지연 로딩 활용
-
+### 위 내용들은 전부 이론적인거고 실무에서는 무조건 지연 로딩(FetchType.LAZY)으로 다 바르는게 좋다!!!!!
 
 ![프록시와 연관관계 관리8](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/da366682-6660-4c7e-864b-c10df0fee786)
 
-# 지연 로딩 활용
-
-
 ![프록시와 연관관계 관리9](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/2597035d-20b3-4f34-9082-cc37ecb62749)
 
-# 지연 로딩 활용 - 실무
+### 지연 로딩 활용 - 실무
 
-- 모든 연관관계에 지연 로딩을 사용해라!
-
-- 실무에서 즉시 로딩을 사용하지 마라!
-
-- **JPQL fetch 조인이나, 엔티티 그래프 기능을 사용해라!** (뒤에서 설명)
-
+### 모든 연관관계에 지연 로딩을 사용해라! 실무에서 즉시 로딩을 사용하지 마라!
+- **`JPQL fetch join` 이나, 엔티티 그래프 기능(`@EntityGraph`)을** 사용해라! (뒤에서 설명)
 - **즉시 로딩은 상상하지 못한 쿼리가 나간다.**
 
 

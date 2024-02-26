@@ -1,79 +1,54 @@
 package hellojpa;
 
 import jakarta.persistence.*;
-import org.hibernate.Hibernate;
+import org.hibernate.Hibernate;import java.util.List;
 
 public class JpaMain {
 
     public static void main(String[] args) {
 
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
-        EntityManager em = emf.createEntityManager();
-        //code
+      EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
+      EntityManager em = emf.createEntityManager();
+      //code
 
-        EntityTransaction tx = em.getTransaction();
-        tx.begin();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
 
-        try {
-          Member member1 = new Member();
-          member1.setName("member1");
-          em.persist(member1);
+      try {
+        Team team1 = new Team();
+        team1.setName("team1");
+        em.persist(team1);
 
-          em.flush();
-          em.clear();
+        Team team2 = new Team();
+        team2.setName("team1");
+        em.persist(team2);
 
-          Member refMember = em.getReference(Member.class, member1.getId());
+        Member member1 = new Member();
+        member1.setName("member1");
+        member1.setTeam(team1);
+        em.persist(member1);
 
-//          em.detach(refMember);
-// em.clear();
-// em.close(); // 3가지 메서드 모두 exception 발생
+        Member member2 = new Member();
+        member2.setName("member2");
+        member2.setTeam(team2);
+        em.persist(member2);
 
-          System.out.println("refMember = " + refMember);
+        em.flush();
+        em.clear();
 
+//        Member m = em.find(Member.class, member1.getId());
 
-          Member member2 = new Member();
-          member2.setName("member2");
-          em.persist(member2);
+        List<Member> members = em.createQuery("select m from Member m", Member.class).getResultList();
 
-          Member member3 = new Member();
-          member3.setName("member3");
-          em.persist(member3);
+        tx.commit();
+      } catch (Exception e) {
+        e.printStackTrace();
+        tx.rollback();
+      } finally {
+        em.close();
+      }
 
-          em.flush();
-          em.clear();
-
-          System.out.println("member2.getId() = " + member2.getId());
-          System.out.println("member2.getName() = " + member2.getName());
-
-//          Member findMember = em.find(Member.class, member.getId());
-          Member findReference = em.getReference(Member.class, member1.getId());
-
-          System.out.println("before findMember = " + findReference.getClass());
-          System.out.println("findMember.id = " + findReference.getId());
-          System.out.println("findMember.name  = " + findReference.getName());
-          System.out.println("after findMember = " + findReference.getClass());
-
-          em.flush();
-          em.clear();
-
-          Member m1 = em.find(Member.class, member1.getId());
-          Member m2 = em.getReference(Member.class, member2.getId());
-
-          instanceOfCompare(m1, m2);
-
-//          printMember(member);
-
-//          printMemberAndTeam(member);
-
-          tx.commit();
-        } catch (Exception e) {
-          e.printStackTrace();
-            tx.rollback();
-        } finally {
-            em.close();
-        }
-
-        emf.close();
+      emf.close();
     }
 
   private static void equalCompare(Member m1, Member m2) {
