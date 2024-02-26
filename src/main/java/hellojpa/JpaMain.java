@@ -16,25 +16,20 @@ public class JpaMain {
       tx.begin();
 
       try {
-        CascadeChild child1 = new CascadeChild();
-        CascadeChild child2 = new CascadeChild();
+        Address address = new Address("city", "street", "100000");
 
-        CascadeParent parent = new CascadeParent();
-        parent.addChild(child1);
-        parent.addChild(child2);
+        Member member1 = new Member();
+        member1.setName("member1");
+        member1.setHomeAddress(address);
+        em.persist(member1);
 
-        em.persist(parent);
+        Address copyAddress = new Address(address.getCity(), address.getStreet(), address.getZipcode());
 
-        em.flush();
-        em.clear();
+        Member member2 = new Member();
+        member2.setName("member1");
+        member2.setHomeAddress(copyAddress);
+        em.persist(member2);
 
-        System.out.println("===== select CascadeParent =====");
-        CascadeParent p = em.find(CascadeParent.class, parent.getId());
-        System.out.println("===== select CascadeParent =====");
-
-        System.out.println("===== delete CascadeChild =====");
-        em.remove(p);
-        System.out.println("===== delete CascadeChild =====");
 
         tx.commit();
       } catch (Exception e) {

@@ -22,14 +22,6 @@ public class Member extends BaseEntity {
     @Embedded
     private Address homeAddress;
 
-    @Embedded
-    @AttributeOverrides({
-      @AttributeOverride(name = "city", column = @Column(name = "WORK_CITY")),
-      @AttributeOverride(name = "street", column = @Column(name = "WORK_STREET")),
-      @AttributeOverride(name = "zipcode", column = @Column(name = "WORK_ZIPCODE"))
-    })
-    private Address workAddress;
-
     public Member() {
     }
 
@@ -55,5 +47,21 @@ public class Member extends BaseEntity {
 
   public void setTeam(Team team) {
     this.team = team;
+  }
+
+  public Period getHomePeriod() {
+    return homePeriod;
+  }
+
+  public void setHomePeriod(Period homePeriod) {
+    this.homePeriod = homePeriod;
+  }
+
+  public Address getHomeAddress() {
+    return homeAddress;
+  }
+
+  public void setHomeAddress(Address homeAddress) {
+    this.homeAddress = homeAddress;
   }
 }

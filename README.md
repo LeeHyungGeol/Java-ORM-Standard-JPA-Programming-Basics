@@ -3299,7 +3299,7 @@ Hibernate:
 ### @AttributeOverride: 속성 재정의
 
 ```java
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 
 @Entity
 public class Member {
@@ -3336,46 +3336,125 @@ Hibernate:
 
 - 한 엔티티에서 같은 값 타입을 사용하면?
 - 컬럼 명이 중복됨
-- **@AttributeOverrides, @AttributeOverride** 를 사용해서 컬러 명 속성을 재정의
+- **`@AttributeOverrides`, `@AttributeOverride`** 를 사용해서 컬러 명 속성을 **재정의**
 
 ### 임베디드 타입과 null
 - 임베디드 타입의 값이 null 이면 매핑한 컬럼 값은 모두 null
 
 
-# 값 타입과 불변 객체
-
+## 값 타입과 불변 객체
 
 **값 타입은 복잡한 객체 세상을 조금이라도 단순화하려고 만든 개념이다. 따라서 값 타입은 단순하고 안전하게 다룰 수 있어야 한다.**
 
-
-# 값 타입 공유 참조
+### 값 타입 공유 참조
 
 ![값타입6](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/85cec68b-c40b-431a-9c0f-c9b0a1ed6d60)
 
-- 임베디드 타입 같은 값 타입을 여러 엔티티에서 공유하면 위험함
+> 회원1 과 회원2 동일한 주소 값타입에 접근할 때, 부작용이 발생할 수 있다.
+
+***임베디드 타입 같은 값 타입을 여러 엔티티에서 공유하면 위험함***
 - 부작용(side effect) 발생
 
+**EX)**
+
+```java
+public static void main(String[] args) {
+  Address address = new Address("city", "street", "100000");
+
+  Member member1 = new Member();
+  member1.setName("member1");
+  member1.setHomeAddress(address);
+  em.persist(member1);
+
+  Member member2 = new Member();
+  member2.setName("member1");
+  member2.setHomeAddress(address);
+  em.persist(member2);
+
+  // 당연히 예시 코드여서 이렇게 코드가 붙어있지만, 실제로는 member, address 생성 코드는 따로 있고, address 변경 코드도 비즈니스 로직에서 따로 떨어져 있다고 본다.
+  
+  member1.getHomeAddress().setCity("New City");
+}
+```
+
+> update query 가 member1 에 대해 한번만 날라갈 것을 의도했으나, update query 가 2번 날라간다.
+
+```
+/* update
+        for hellojpa.Member */update Member 
+    set
+        createdAt=?,
+        createdBy=?,
+        city=?,
+        street=?,
+        zipcode=?,
+        endDate=?,
+        startDate=?,
+        lastModifiedAt=?,
+        lastModifiedBy=?,
+        USERNAME=?,
+        TEAM_ID=? 
+    where
+        MEMBER_ID=?
+Hibernate: 
+    /* update
+        for hellojpa.Member */update Member 
+    set
+        createdAt=?,
+        createdBy=?,
+        city=?,
+        street=?,
+        zipcode=?,
+        endDate=?,
+        startDate=?,
+        lastModifiedAt=?,
+        lastModifiedBy=?,
+        USERNAME=?,
+        TEAM_ID=? 
+    where
+        MEMBER_ID=?
+```
+
+> 만약 진짜로 의도하고 2개 다 변경하게 만들고 싶었다면, Address 를 임베디드 타입이 아닌, Entity 로 만들어야 맞다. 값 타입은 side effect 가 있으면 안된다.
 
 # 값 타입 복사
 
 ![값타입7](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/8b34ee47-9848-476e-885e-90a086e0956e)
 
 - 값 타입의 실제 인스턴스인 값을 공유하는 것은 위험
-- 대신 값(인스턴스)를 복사해서 사용
+- **대신 값(인스턴스)를 복사해서 사용**
 
+**EX)**
 
-# 객체 타입의 한계
+> 인스턴스를 복사해서 사용하는 예시
+
+```java
+public static void main(String[] args) {
+  Address address = new Address("city", "street", "100000");
+  
+  ...
+  Address copyAddress = new Address(address.getCity(), address.getStreet(), address.getZipcode());
+  ...
+  member2.setHomeAddress(copyAddress);
+  ...
+  member1.getHomeAddress().setCity("New City");
+}
+```
+
+### 객체 타입의 한계
 
 - 항상 값을 복사해서 사용하면 공유 참조로 인해 발생하는 부작용을 피할 수 있다.
-- 문제는 임베디드 타입처럼 직접 정의한 값 타입은 자바의 기본 타입이 아니라 객체 타입 이다.
+- 문제는 임베디드 타입처럼 **직접 정의한 값 타입은 자바의 기본 타입이 아니라 객체 타입 이다.**
 - 자바 기본 타입에 값을 대입하면 값을 복사한다.
-- 객체 타입은 참조 값을 직접 대입하는 것을 막을 방법이 없다.
-- 객체의 공유 참조는 피할 수 없다.
+- **객체 타입은 참조 값을 직접 대입하는 것을 막을 방법이 없다.**
+- **객체의 공유 참조는 피할 수 없다.**
 
 
-# 객체 타입의 한계
+### 객체 타입의 한계
 
 기본 타입(primitive type)
+
+> 기본 타입은 값을 복사
 
 ```java
 int a = 10;
@@ -3385,22 +3464,26 @@ b = 4;
 
 객체 타입
 
+> 객체 타입은 참조를 전달
+
 ```java
-Address a = new Address(“Old”);
+Address a = new Address("Old");
 Address b = a; //객체 타입은 참조를 전달
-b. setCity(“New”)
+b.setCity("New");
 ```
 
-# 불변 객체
+### 불변 객체
 
-- 객체 타입을 수정할 수 없게 만들면 부작용을 원천 차단
+- 객체 타입을 수정할 수 없게 만들면 **부작용을 원천 차단**
 - **값 타입은 불변 객체(immutable object)로 설계해야함**
 - **불변 객체: 생성 시점 이후 절대 값을 변경할 수 없는 객체**
-- 생성자로만 값을 설정하고 수정자(Setter)를 만들지 않으면 됨
-- 참고: Integer, String은 자바가 제공하는 대표적인 불변 객체
 
+***생성자로만 값을 설정하고 수정자(Setter)를 만들지 않으면 됨***
+>참고: Integer, String은 자바가 제공하는 대표적인 불변 객체 
 
-**불변이라는 작은 제약으로 부작용이라는 큰 재앙을 막을 수 있다.**
+> Setter 를 전부 없애거나, private 으로 만들어버리자. 필요하다면 완전히 새로 만들어서 바꿔버리자.
+
+**값 타입은 그냥 깔끔하게 불변으로 만들어버리자!!! 불변이라는 작은 제약으로 부작용이라는 큰 재앙을 막을 수 있다.**
 
 
 # 값 타입의 비교
