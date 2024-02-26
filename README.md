@@ -3231,70 +3231,115 @@ Hibernate:
 - 기본 타입은 항상 값을 복사함
 - Integer같은 래퍼 클래스나 String 같은 특수한 클래스는 공유 가능한 객체이지만 변경X
 
-# 임베디드 타입(복합 값 타입)
+## 임베디드 타입(복합 값 타입)
 
-# 임베디드 타입
+### 임베디드 타입
 
 - 새로운 값 타입을 직접 정의할 수 있음
 - JPA는 임베디드 타입(embedded type)이라 함
 - 주로 기본 값 타입을 모아서 만들어서 복합 값 타입이라고도 함
 - int, String과 같은 값 타입
+  - **값 타입과 마찬가지로 변경하면, 추적이 불가능해진다.**
 
+### 임베디드 타입에 대한 예시
 
-# 임베디드 타입
-
-- 회원 엔티티는 이름, 근무 시작일, 근무 종료일, 주소 도시, 주소 번지, 주소 우편번호를 가진다.
+> 회원 엔티티는 이름, 근무 시작일, 근무 종료일, 주소 도시, 주소 번지, 주소 우편번호를 가진다.
+- 근무 시작일, 근무 종료일은 비슷하니까 하나로 묶고, 주소 도시, 주소 번지, 주소 우편번호도 비슷한 성격이니까 하나로 묶자.
 
 ![값 타입1](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/36fb8fb0-5744-44ef-80ad-e92e3ddda7a9)
 
-# 임베디드 타입
-
-- 회원 엔티티는 이름, 근무 기간, 집 주소를 가진다.
+> 회원 엔티티는 이름, 근무 기간, 집 주소를 가진다.
+- 근무 기간(Period), 집 주소(Address) 로 묶어내었다.
 
 ![값 타입2](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/c91cac46-9ca2-4116-a0da-135711a42871)
 
-# 임베디드 타입
+> Period, Address 를 묶어내어서 값 타입으로 만들었다. 쉽게 말해서 class 로 만들었다.
 
 ![값타입3](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/8300b27b-262c-4447-a4a6-d2288dcabe62)
 
-# 임베디드 타입 사용법
+### 임베디드 타입 사용법
 
-- @Embeddable: 값 타입을 정의하는 곳에 표시
-- @Embedded: 값 타입을 사용하는 곳에 표시
-- 기본 생성자 필수
+- `@Embeddable`: 값 타입을 정의하는 곳에 표시
+- `@Embedded`: 값 타입을 사용하는 곳에 표시
+- **기본 생성자 필수**
 
 
-# 임베디드 타입의 장점
+### 임베디드 타입의 장점
 
-- 재사용
-- 높은 응집도
+- **재사용성**
+  - Period, Address 와 같은 class 들을 다른 클래스에서도 재사용할 수 있다.
+- **높은 응집도**
 - Period.isWork()처럼 해당 값 타입만 사용하는 의미 있는 메소드를 만들 수 있음
+  - 상당히 객체지향적인 코드로 만들 수 있다.
 - 임베디드 타입을 포함한 모든 값 타입은, 값 타입을 소유한 엔티티에 생명주기를 의존함
+  - 임베디드 타입도 결국 값 타입이다.
+  - 엔티티가 죽으면 다 죽는 것이고, 엔티티가 생성될 때 값이 들어오는 것이다.
 
-# 임베디드 타입과 테이블 매핑
+### 임베디드 타입과 테이블 매핑
+
+> DB 입장에서는 Period, Address 와 같은 임베디드 타입을 쓰든 값 타입을 쓰든 똑같다. 대신에 Mapping 만 조금 해주면 된다.
+
+> DB 입장에서는 똑같지만, 객체 입장에서는 데이터 뿐만 아니라 메서드와 같은 기능, 행위까지 다 들고 있기 때문에, 묶었을 때 가질 수 있는 이득이 많아진다.
 
 ![값타입4](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/3a268bc0-a531-4995-8d19-1e7cd53db867)
 
-# 임베디드 타입과 테이블 매핑
+### 임베디드 타입과 테이블 매핑
 
 - 임베디드 타입은 엔티티의 값일 뿐이다.
-- 임베디드 타입을 사용하기 전과 후에 매핑하는 테이블은 같다.
-- 객체와 테이블을 아주 세밀하게(find-grained) 매핑하는 것이 가능
+- 임베디드 타입을 사용하기 전과 후에 **매핑하는 테이블은 같다!!!**
+- **객체와 테이블을 아주 세밀하게(find-grained) 매핑하는 것이 가능**
 - 잘 설계한 ORM 애플리케이션은 매핑한 테이블의 수보다 클래스의 수가 더 많음
+  - 설계적으로 봤을 때도 모델링도 되게 깔끔하게 떨어지고, 설명하기도 좋다.
+  - 이렇게 만들어 놓으면 공통으로 관리할 수 있고, domain 의 언어를 공통화할 수 있다. 언어도 공통이 되고 코드도 공통이 된다.
 
-# 임베디드 타입과 연관관계
+### 임베디드 타입과 연관관계
 
 ![값타입5](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/ca01325c-e53d-45a3-a06a-5edd6b8491e0)
 
-# @AttributeOverride: 속성 재정의
+### @AttributeOverride: 속성 재정의
+
+```java
+import jakarta.persistence.Entity;
+
+@Entity
+public class Member {
+  @Embedded
+  private Address homeAddress;
+
+  @Embedded
+  @AttributeOverrides({
+    @AttributeOverride(name = "city", column = @Column(name = "WORK_CITY")),
+    @AttributeOverride(name = "street", column = @Column(name = "WORK_STREET")),
+    @AttributeOverride(name = "zipcode", column = @Column(name = "WORK_ZIPCODE"))
+  })
+  private Address workAddress;
+}
+
+```
+
+```
+Hibernate: 
+    create table Member (
+        MEMBER_ID bigint not null,
+        ...
+        endDate timestamp(6),
+        startDate timestamp(6),
+        ...
+        WORK_CITY varchar(255),
+        WORK_STREET varchar(255),
+        WORK_ZIPCODE varchar(255),
+        city varchar(255),
+        street varchar(255),
+        zipcode varchar(255),
+    )
+```
 
 - 한 엔티티에서 같은 값 타입을 사용하면?
 - 컬럼 명이 중복됨
 - **@AttributeOverrides, @AttributeOverride** 를 사용해서 컬러 명 속성을 재정의
 
-# 임베디드 타입과 null
-
-- 임베디드 타입의 값이 null이면 매핑한 컬럼 값은 모두 null
+### 임베디드 타입과 null
+- 임베디드 타입의 값이 null 이면 매핑한 컬럼 값은 모두 null
 
 
 # 값 타입과 불변 객체
