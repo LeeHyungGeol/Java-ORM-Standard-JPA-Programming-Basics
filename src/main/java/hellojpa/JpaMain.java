@@ -2,6 +2,9 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Set;
 
@@ -17,32 +20,7 @@ public class JpaMain {
     tx.begin();
 
     try {
-      Member member = new Member();
-      member.setName("member1");
-      member.setHomeAddress(new Address("new", "street", "100000"));
-
-      member.getFavoriteFoods().add("국밥");
-      member.getFavoriteFoods().add("돈까스");
-      member.getFavoriteFoods().add("햄버거");
-
-      member.getAddressHistory().add(new AddressEntity("old1", "street", "100000"));
-      member.getAddressHistory().add(new AddressEntity("old2", "street", "100000"));
-
-      em.persist(member);
-
-      em.flush();
-      em.clear();
-
-      Member findMember = em.find(Member.class, member.getId());
-
-      // 치킨 -> subway
-      findMember.getFavoriteFoods().remove("국밥");
-      findMember.getFavoriteFoods().add("subway");
-
-      // old1 -> oldCity
-      findMember.getAddressHistory().remove(new AddressEntity("old1", "street", "100000"));
-      findMember.getAddressHistory().add(new AddressEntity("oldCity", "street", "100000"));
-
+      List<Member> resultList = em.createNativeQuery("SELECT MEMBER_ID, city, street, zipcode, USERNAME, TEAM_ID FROM MEMBER WHERE USERNAME = 'lee'", Member.class).getResultList();
 
       tx.commit();
     } catch (Exception e) {
