@@ -3539,64 +3539,383 @@ public static void main(String[] args) {
 
 ![Use getters during code generation](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/ea4cba08-1034-41d6-9af3-6de1dd893f2f)
 
-# 값 타입 컬렉션
-
-
-# 값 타입 컬렉션
+## 값 타입 컬렉션
 
 ![값타입12](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/8558b801-588d-48fb-ab17-66709ebdbb60)
 
-# 값 타입 컬렉션
+> 단순하게 값 타입이 하나일 때는 그냥 class 의 field 속성으로 해서 table 안에 값을 넣으면 된다. 
+
+> 문제는 Collection 을 DB table 에 넣을 수 없다. RDB 는 기본적으로 table 안에 Collection 을 담을 수 있는 구조가 없다. Value 로 값만 넣을 수 있다.
+
+> 컬렉션을 저장하기 위한 **별도의 테이블**이 필요하다. 구조적으로 보면 1:N 의 관계가 된다.
+
+필드의 값들과 외래키를 전부 조합하여 PK 로 사용해야 한다. 별도의 id(`@Id`) 를 생성해서 PK 로 다루면, entity 가 되어버린다.
 
 - 값 타입을 하나 이상 저장할 때 사용
-- @ElementCollection, @CollectionTable 사용
+- **`@ElementCollection`**, **`@CollectionTable`** 사용
 - 데이터베이스는 컬렉션을 같은 테이블에 저장할 수 없다.
-- 컬렉션을 저장하기 위한 별도의 테이블이 필요함
+
+### 값 타입 컬렉션 사용
 
 
-# 값 타입 컬렉션 사용
+#### 값 타입 저장 예제
 
-- 값 타입 저장 예제
+```java
+import jakarta.persistence.*;
 
-- 값 타입 조회 예제
+@Entity
+public class Member {
+  @Embedded
+  private Address homeAddress;
 
-- 값 타입 컬렉션도 지연 로딩 전략 사용
+  @ElementCollection
+  @CollectionTable(
+    name = "FAVORITE_FOOD",
+    joinColumns = @JoinColumn(name = "MEMBER_ID")
+  )
+  @Column(name = "FOOD_NAME")
+  private Set<String> favoriteFoods = new HashSet<>();
 
-- 값 타입 수정 예제
+  @ElementCollection
+  @CollectionTable(
+    name = "ADDRESS",
+    joinColumns = @JoinColumn(name = "MEMBER_ID")
+  )
+  private List<Address> addressHistory = new ArrayList<>();
+}
 
+public static void main(String[] args) {
+  Member member = new Member();
+  member.setName("member1");
+  member.setHomeAddress(new Address("new", "street", "100000"));
+
+  member.getFavoriteFoods().add("국밥");
+  member.getFavoriteFoods().add("돈까스");
+  member.getFavoriteFoods().add("햄버거");
+
+  member.getAddressHistory().add(new Address("old1", "street", "100000"));
+  member.getAddressHistory().add(new Address("old2", "street", "100000"));
+
+  em.persist(member);
+}
+```
+
+```
+Hibernate: 
+    create table Member (
+        MEMBER_ID bigint not null,
+        TEAM_ID bigint,
+        USERNAME varchar(255),
+        city varchar(255),
+        street varchar(255),
+        zipcode varchar(255),
+        primary key (MEMBER_ID)
+    )
+    
+Hibernate: 
+    create table FAVORITE_FOOD (
+        MEMBER_ID bigint not null,
+        FOOD_NAME varchar(255)
+    )
+    
+Hibernate: 
+    create table ADDRESS (
+        MEMBER_ID bigint not null,
+        city varchar(255),
+        street varchar(255),
+        zipcode varchar(255)
+    )
+    
+    
+    Hibernate: 
+    /* insert for
+        hellojpa.Member */insert 
+    into
+        Member (city, street, zipcode, USERNAME, TEAM_ID, MEMBER_ID) 
+    values
+        (?, ?, ?, ?, ?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.Member.addressHistory */insert 
+    into
+        ADDRESS (MEMBER_ID, city, street, zipcode) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.Member.addressHistory */insert 
+    into
+        ADDRESS (MEMBER_ID, city, street, zipcode) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.Member.favoriteFoods */insert 
+    into
+        FAVORITE_FOOD (MEMBER_ID, FOOD_NAME) 
+    values
+        (?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.Member.favoriteFoods */insert 
+    into
+        FAVORITE_FOOD (MEMBER_ID, FOOD_NAME) 
+    values
+        (?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.Member.favoriteFoods */insert 
+    into
+        FAVORITE_FOOD (MEMBER_ID, FOOD_NAME) 
+    values
+        (?, ?)
+```
+
+> `em.persist(member);` 만 해도 AddressHistory, FavoriteFood 가 다 저장이 된다. 
+> lifeCycle 이 member 에 다 의존하고 있다. 값 타입 및 값 타입 컬렉션은 주인 엔티티(여기선 member) 에 lifeCycle 을 다 의존하고 있다.
+> `(CascadeType.ALL, orphanRemoval = true)` 를 킨 것과 똑같은 효과를 본다.
+
+#### 값 타입 조회 예제
+
+```java
+public static void main(String[] args) {
+  em.flush();
+  em.clear();
+
+  System.out.println("========== findMember ==========");
+
+  Member findMember = em.find(Member.class, member.getId());
+  System.out.println("========== findMember ==========");
+
+  System.out.println("========== getAddressHistory ==========");
+  List<Address> addresses = findMember.getAddressHistory();
+  for (Address address : addresses) {
+    System.out.println("address = " + address.getCity());
+  }
+  System.out.println("========== getAddressHistory ==========");
+
+  System.out.println("========== getFavoriteFoods ==========");
+  Set<String> favoriteFoods = findMember.getFavoriteFoods();
+  for (String favoriteFood : favoriteFoods) {
+    System.out.println("favoriteFood = " + favoriteFood);
+  }
+  System.out.println("========== getFavoriteFoods ==========");
+}
+```
+
+```
+========== findMember ==========
+Hibernate: 
+    select
+        m1_0.MEMBER_ID,
+        m1_0.city,
+        m1_0.street,
+        m1_0.zipcode,
+        m1_0.USERNAME,
+        m1_0.TEAM_ID 
+    from
+        Member m1_0 
+    where
+        m1_0.MEMBER_ID=?
+========== findMember ==========
+========== getAddressHistory ==========
+Hibernate: 
+    select
+        ah1_0.MEMBER_ID,
+        ah1_0.city,
+        ah1_0.street,
+        ah1_0.zipcode 
+    from
+        ADDRESS ah1_0 
+    where
+        ah1_0.MEMBER_ID=?
+address = old1
+address = old2
+========== getAddressHistory ==========
+========== getFavoriteFoods ==========
+Hibernate: 
+    select
+        ff1_0.MEMBER_ID,
+        ff1_0.FOOD_NAME 
+    from
+        FAVORITE_FOOD ff1_0 
+    where
+        ff1_0.MEMBER_ID=?
+favoriteFood = 돈까스
+favoriteFood = 햄버거
+favoriteFood = 국밥
+========== getFavoriteFoods ==========
+```
+
+> 첫 쿼리를 보면 findMember 를 하면 member 만 가져온다. `@ElementCollection` 은 기본 전략이 `fetch = FetchType.LAZY` 이다. 지연 로딩 전략이다.
+- 값 타입 컬렉션도 **지연 로딩 전략(`fetch = FetchType.LAZY`)** 사용
 - 참고: 값 타입 컬렉션은 영속성 전에(Cascade) + 고아 객체 제거 기능을 필수로 가진다고 볼 수 있다.
 
-# 값 타입 컬렉션의 제약사항
+#### 값 타입 수정 예제
+
+```java
+public static void main(String[] args) {
+  em.flush();
+  em.clear();
+
+  Member findMember = em.find(Member.class, member.getId());
+
+  // 치킨 -> subway
+  findMember.getFavoriteFoods().remove("국밥");
+  findMember.getFavoriteFoods().add("subway");
+
+  // old1 -> oldCity
+  findMember.getAddressHistory().remove(new Address("old1", "street", "100000"));
+  findMember.getAddressHistory().add(new Address("oldCity", "street", "100000"));
+}
+```
+
+- remove(Object o) 를 할 때, instance 를 사용해서 제거할 수 있다. 
+  - JPA 에서 내부적으로 override 메서드인 equals 를 사용하여, 객체를 비교 후에 똑같은 값을 가진 객체를 삭제해준다.
+  - **그렇기 떄문에, equals() and hashCode() 메서드를 잘 override 해야한다!**
+  - **주로 컬렉션(Collection) 을 다룰 때, equals() and hashCode() 메서드가 효과를 본다.**
+
+```
+Hibernate: 
+    /* one-shot delete for hellojpa.Member.addressHistory */delete 
+    from
+        ADDRESS 
+    where
+        MEMBER_ID=?
+Hibernate: 
+    /* insert for
+        hellojpa.Member.addressHistory */insert 
+    into
+        ADDRESS (MEMBER_ID, city, street, zipcode) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    /* insert for
+        hellojpa.Member.addressHistory */insert 
+    into
+        ADDRESS (MEMBER_ID, city, street, zipcode) 
+    values
+        (?, ?, ?, ?)
+        
+-----------------------------------------------------------        
+        
+Hibernate: 
+    /* delete for hellojpa.Member.favoriteFoods */delete 
+    from
+        FAVORITE_FOOD 
+    where
+        MEMBER_ID=? 
+        and FOOD_NAME=?
+Hibernate: 
+    /* insert for
+        hellojpa.Member.favoriteFoods */insert 
+    into
+        FAVORITE_FOOD (MEMBER_ID, FOOD_NAME) 
+    values
+        (?, ?)
+```
+
+> Hibernate:
+> /* one-shot delete for hellojpa.Member.addressHistory */delete
+> from
+> ADDRESS
+> where
+> MEMBER_ID=?
+ 
+> 식별자가 없기 떄문에, 값 타입 컬렉션은 추적이 어렵다.
+ 
+> **값 타입 컬렉션에 변경 사항이 발생하면, 주인 엔티티와 연관된 모든 데이터를 삭제하고, 값 타입 컬렉션에 있는 현재 값을 모두 다시 저장한다.**
+
+- ***결론은 값 타입 컬렉션은 엄청 간단한 값을 저장하는 경우가 아니라면 쓰지 말자!!!***
+- 진짜 쓴다면, 모든 field 들을 묶어서 따로 PK 로 만들어줘서 사용해야 한다.
+
+```java
+import jakarta.persistence.Entity;
+
+@Entity
+public class Member {
+  @OrderColumn(name = "address_history_order")
+  @ElementCollection
+  @CollectionTable(
+    name = "ADDRESS",
+    joinColumns = @JoinColumn(name = "MEMBER_ID")
+  )
+  private List<Address> addressHistory = new ArrayList<>();
+}
+```
+
+- **`@OrderColumn`** 을 사용할 수 있지만, 이것도 순서가 꼬여버리면, 예를 들어, 0,1,2,3 중에 2 를 빼먹으면, null 값이 들어가버릴 수도 있다.
+
+### 값 타입 컬렉션의 제약사항
 
 - 값 타입은 엔티티와 다르게 식별자 개념이 없다.
 - 값은 변경하면 추적이 어렵다.
-- 값 타입 컬렉션에 변경 사항이 발생하면, 주인 엔티티와 연관된 모든 데이터를 삭제하고, 값 타입 컬렉션에 있는 현재 값을 모두 다시 저장한다.
-- 값 타입 컬렉션을 매핑하는 테이블은 모든 컬럼을 묶어서 기본키를 구성해야 함: null 입력X, 중복 저장X
+- **값 타입 컬렉션에 변경 사항이 발생하면, 주인 엔티티와 연관된 모든 데이터를 삭제하고, 값 타입 컬렉션에 있는 현재 값을 모두 다시 저장한다.**
+- 값 타입 컬렉션을 매핑하는 테이블은 모든 컬럼을 묶어서 기본키를 구성해야 함: **null 입력X, 중복 저장X**
 
-# 값 타입 컬렉션 대안
+### 값 타입 컬렉션 대안
 
-- 실무에서는 상황에 따라 값 타입 컬렉션 대신에 일대다 관계를 고려
-- 일대다 관계를 위한 엔티티를 만들고, 여기에서 값 타입을 사용
+```java
+import jakarta.persistence.*;
+
+@Entity
+public class Member {
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "MEMBER_ID")
+  private List<AddressEntity> addressHistory = new ArrayList<>();
+}
+
+@Entity
+public class AddressEntity {
+  @Id @GeneratedValue
+  private Long id;
+  private Address address;
+  
+  public AddressEntity() {
+  }
+
+  public AddressEntity(Address address) {
+    this.address = address;
+  }
+
+  public AddressEntity(String city, String street, String zipcode) {
+    this.address = new Address(city, street, zipcode);
+  }
+  ...
+}
+
+public static void main(String[] args) {
+  // old1 -> oldCity
+  findMember.getAddressHistory().remove(new AddressEntity("old1", "street", "100000"));
+  findMember.getAddressHistory().add(new AddressEntity("oldCity", "street", "100000"));
+}
+```
+
+> Address(값 타입) 을 field 로 가지는 entity(AddressEntity) 를 생성하고, Member 와 `@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)` 관계로 풀어내었다.
+
+- 실무에서는 상황에 따라 값 타입 컬렉션 대신에 **일대다 관계를 고려**
+- 일대다 관계를 위한 **엔티티**를 만들고, **여기에서 값 타입을 사용**
 - 영속성 전이(Cascade) + 고아 객체 제거를 사용해서 값 타입 컬렉션 처럼 사용
 - EX) AddressEntity
 
-
-# 정리
+### 정리
 
 - **엔티티 타입의 특징**
   - 식별자O
   - 생명 주기 관리
   - 공유
 - **값 타입의 특징**
-  - 식별자X
+  - **식별자X**
   - 생명 주기를 엔티티에 의존
   - 공유하지 않는 것이 안전(복사해서 사용)
   - 불변 객체로 만드는 것이 안전
 
+***결론적으로 값 타입은, select box 결과와 같은 진짜 간단한 곳에 사용할 수 있다. 그 외에는 entity 로 만들어서 사용하자!!***
+
+***식별자가 필요하고, 지속해서 값을 추적, 변경해야 한다면 그것은 값 타입이 아닌 엔티티***
 
 - 값 타입은 정말 값 타입이라 판단될 때만 사용
 - 엔티티와 값 타입을 혼동해서 엔티티를 값 타입으로 만들면 안됨
-- 식별자가 필요하고, 지속해서 값을 추적, 변경해야 한다면 그것은 값 타입이 아닌 엔티티
 
 
 # 실전 예제 - 6. 값 타입 매핑

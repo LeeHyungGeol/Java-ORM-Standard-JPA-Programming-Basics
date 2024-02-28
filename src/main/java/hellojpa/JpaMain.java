@@ -3,44 +3,57 @@ package hellojpa;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Set;
 
 public class JpaMain {
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-      EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
-      EntityManager em = emf.createEntityManager();
-      //code
+    EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
+    EntityManager em = emf.createEntityManager();
+    //code
 
-      EntityTransaction tx = em.getTransaction();
-      tx.begin();
+    EntityTransaction tx = em.getTransaction();
+    tx.begin();
 
-      try {
-        Address address = new Address("city", "street", "100000");
+    try {
+      Member member = new Member();
+      member.setName("member1");
+      member.setHomeAddress(new Address("new", "street", "100000"));
 
-        Member member1 = new Member();
-        member1.setName("member1");
-        member1.setHomeAddress(address);
-        em.persist(member1);
+      member.getFavoriteFoods().add("국밥");
+      member.getFavoriteFoods().add("돈까스");
+      member.getFavoriteFoods().add("햄버거");
 
-        Address copyAddress = new Address(address.getCity(), address.getStreet(), address.getZipcode());
+      member.getAddressHistory().add(new AddressEntity("old1", "street", "100000"));
+      member.getAddressHistory().add(new AddressEntity("old2", "street", "100000"));
 
-        Member member2 = new Member();
-        member2.setName("member1");
-        member2.setHomeAddress(copyAddress);
-        em.persist(member2);
+      em.persist(member);
+
+      em.flush();
+      em.clear();
+
+      Member findMember = em.find(Member.class, member.getId());
+
+      // 치킨 -> subway
+      findMember.getFavoriteFoods().remove("국밥");
+      findMember.getFavoriteFoods().add("subway");
+
+      // old1 -> oldCity
+      findMember.getAddressHistory().remove(new AddressEntity("old1", "street", "100000"));
+      findMember.getAddressHistory().add(new AddressEntity("oldCity", "street", "100000"));
 
 
-        tx.commit();
-      } catch (Exception e) {
-        e.printStackTrace();
-        tx.rollback();
-      } finally {
-        em.close();
-      }
-
-      emf.close();
+      tx.commit();
+    } catch (Exception e) {
+      e.printStackTrace();
+      tx.rollback();
+    } finally {
+      em.close();
     }
+
+    emf.close();
+  }
 
   private static void equalCompare(Member m1, Member m2) {
     System.out.println("m1 == m2: " + (m1.getClass() == m2.getClass()));
@@ -56,10 +69,10 @@ public class JpaMain {
   }
 
   private static void printMemberAndTeam(Member member) {
-      String userName = member.getName();
-      System.out.println("userName = " + userName);
+    String userName = member.getName();
+    System.out.println("userName = " + userName);
 
-      Team team = member.getTeam();
-      System.out.println("userName = " + team.getName());
+    Team team = member.getTeam();
+    System.out.println("userName = " + team.getName());
   }
 }
