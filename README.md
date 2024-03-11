@@ -4189,27 +4189,221 @@ query.setParameter(1 ,usernameParam);
 - 위치 기준 파라미터 바인딩은 웬만하면 쓰지말자. 
 - 순서가 바뀐다면, 다 틀어지기 때문에 안쓰는 것을 추천한다.
 
-# 프로젝션
+## 프로젝션
 
-- SELECT 절에 조회할 대상을 지정하는 것
-- 프로젝션 대상: 엔티티, 임베디드 타입, 스칼라 타입(숫자, 문자등 기본 데이터 타입)
-- SELECT **m** FROM Member m -> 엔티티 프로젝션
-- SELECT **m.team** FROM Member m -> 엔티티 프로젝션
-- SELECT **m.address** FROM Member m -> 임베디드 타입 프로젝션
-- SELECT **m.username, m.age** FROM Member m -> 스칼라 타입 프로젝션
-- DISTINCT로 중복 제거
+- **SELECT 절에 조회할 대상을 지정하는 것**
+- **프로젝션 대상: 엔티티, 임베디드 타입, 스칼라 타입(숫자, 문자등 기본 데이터 타입)**
 
 
-# 프로젝션 - 여러 값 조회
+#### SELECT m FROM Member m -> 엔티티 프로젝션(entity projection)
+
+```java
+public static void main(String[] args) {
+  Member member = new Member();
+  member.setUsername("member1");
+  member.setAge(28);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  List<Member> result = em.createQuery("select m from Member m", Member.class)
+    .getResultList();
+
+  Member findMember = result.get(0);
+  findMember.setAge(11);
+}
+```
+
+- result 와 같은 **엔티티 프로젝션**의 값으로(select 문의 쿼리 결과)로 나오는 값들은 전부 영속성 컨텍스트에 관리가 되어서 값을 바꾸면 변경 감지를 통해서 update 쿼리가 날라간다.  
+
+#### SELECT **m.team** FROM Member m -> 엔티티 프로젝션(entity projection)
+
+```java
+public static void main(String[] args) {
+  Member member = new Member();
+  member.setUsername("member1");
+  member.setAge(28);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  List<Team> result = em.createQuery("select m.team from Member m", Team.class)
+    .getResultList();
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m.team 
+    from
+        Member m */ select
+            t1_0.id,
+            t1_0.name 
+        from
+            Member m1_0 
+        join
+            Team t1_0 
+                on t1_0.id=m1_0.TEAM_ID 
+```
+
+```java
+List<Team> result = em.createQuery("select t from Member m join m.team t", Team.class)
+        .getResultList();
+```
+
+- team 은 다른 엔티티이기 때문에, 자동으로 join 쿼리가 날라간다.
+- 경로표현식과 관련이 있다.
+- jpql 은 웬만하면 sql 과 비슷하게 쓰는 것이 낫다.
+  - join 이라는 것 자체가 성능에 영향을 줄 수 있는 요소가 많기 때문에 한눈에 보이게 하는 것이 낫다.
+  - `m.team` 이런 식으로만 jpql 을 짜놓으면 실제로 sql query 가 어떻게 날라갈지 예상이 안가게 된다.
+  - 뒤에 경로 표현식에서 명시적 조인, 묵시적 조인이 나온다.
+
+***결론은 join 은 웬만하면 명시적 join 을 사용하자!!!!!***
+
+#### SELECT **m.address** FROM Member m -> 임베디드 타입 프로젝션(embedded type projection) 
+
+```java
+em.createQuery("select o.address from Order o", Address.class)
+          .getResultList();
+```
+
+```
+Hibernate: 
+    /* select
+        o.address 
+    from
+        
+    Order o */ select
+        o1_0.city,
+        o1_0.street,
+        o1_0.zipcode from
+            ORDERS o1_0
+```
+
+- 임베디드 타입은 entity 에 소속이 되어있기 때문에 `select address from Address` 와 같이는 사용하지 못한다.
+- entity 를 명시해줘야 하는 한계가 있다.
+
+#### SELECT **m.username, m.age** FROM Member m -> 스칼라 타입 프로젝션(scalar type projection)
+
+```java
+em.createQuery("select distinct m.username, m.age from Member m")
+          .getResultList();
+```
+
+```
+Hibernate: 
+    /* select
+        distinct m.username,
+        m.age 
+    from
+        Member m */ select
+            distinct m1_0.username,
+            m1_0.age 
+        from
+            Member m1_0
+```
+
+- DISTINCT 로 중복 제거
+
+### 프로젝션 - 여러 값 조회
 
 - SELECT **m.username** , **m.age** FROM Member m
-- 1. Query 타입으로 조회
-- 2. Object[] 타입으로 조회
-- 3. new 명령어로 조회
-  - 단순 값을 DTO로 바로 조회
-    - SELECT **new** jpabook.jpql.UserDTO(m.username, m.age) FROM Member m
-  - 패키지 명을 포함한 전체 클래스 명 입력
-  - 순서와 타입이 일치하는 생성자 필요
+
+#### 1. Query 타입으로 조회
+
+```java
+Query query = em.createQuery("select m.username, m.age from Member m");
+```
+
+#### 2. Object[] 타입으로 조회
+
+```java
+import java.util.List;
+
+public static void main(String[] args) {
+  List resultList = em.createQuery("select m.username, m.age from Member m")
+    .getResultList();
+  Object o = resultList.get(0);
+  Object[] result = (Object[]) o;
+  System.out.println("username = " + result[0]);
+  System.out.println("username = " + result[1]);
+
+  List<Object[]> resultList2 = em.createQuery("select m.username, m.age from Member m")
+    .getResultList();
+
+  Object[] result2 = resultList2.get(0);
+  System.out.println("username = " + result2[0]);
+  System.out.println("age = " + result2[1]);
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m.username,
+        m.age 
+    from
+        Member m */ select
+            m1_0.username,
+            m1_0.age 
+        from
+            Member m1_0
+username = member1
+username = 28
+Hibernate: 
+    /* select
+        m.username,
+        m.age 
+    from
+        Member m */ select
+            m1_0.username,
+            m1_0.age 
+        from
+            Member m1_0
+username = member1
+age = 28
+```
+
+Object 로 TypeCasting 을 해서 사용한다.
+- Type 에 대한 명시를 못하니까 Object 로 돌려주는 것
+
+#### 3. new 명령어로 조회
+
+```java
+public static void main(String[] args) {
+  List<MemberDTO> result = em.createQuery("select new org.example.jpql.domain.MemberDTO(m.username, m.age) from Member m", MemberDTO.class)
+    .getResultList();
+
+  MemberDTO memberDTO = result.get(0);
+  System.out.println("username = " + memberDTO.getUsername());
+  System.out.println("age = " + memberDTO.getAge());
+}
+```
+
+```
+Hibernate: 
+    /* select
+        new org.example.jpql.domain.MemberDTO(m.username, m.age) 
+    from
+        Member m */ select
+            m1_0.username,
+            m1_0.age 
+        from
+            Member m1_0
+username = member1
+age = 28
+```
+
+- 단순 값을 DTO로 바로 조회
+  - SELECT **new** jpabook.jpql.UserDTO(m.username, m.age) FROM Member m
+- **패키지 명을 포함한 전체 클래스명 입력**
+- 순서와 타입이 일치하는 **생성자 필요**
+- 단점은 패키지명이 길어지면 모두 다 적어야 한다.
+  - select 문 문자이기 때문에 한계가 있다.(패키지명, new 생성자를 모두 써야 함.)
+  - QueryDSL 로 극복이 가능하다.
 
 
 # 페이징 API
