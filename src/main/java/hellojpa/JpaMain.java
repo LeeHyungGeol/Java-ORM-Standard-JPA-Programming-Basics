@@ -20,7 +20,6 @@ public class JpaMain {
     tx.begin();
 
     try {
-      List<Member> resultList = em.createNativeQuery("SELECT MEMBER_ID, city, street, zipcode, USERNAME, TEAM_ID FROM MEMBER WHERE USERNAME = 'lee'", Member.class).getResultList();
 
       tx.commit();
     } catch (Exception e) {

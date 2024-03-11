@@ -87,11 +87,5 @@ public class Member {
     this.favoriteFoods = favoriteFoods;
   }
 
-  public List<AddressEntity> getAddressHistory() {
-    return addressHistory;
-  }
 
-  public void setAddressHistory(List<AddressEntity> addressHistory) {
-    this.addressHistory = addressHistory;
-  }
 }

@@ -4081,13 +4081,12 @@ Hibernate:
 ## JPQL(Java Persistence Query Language)
 
 
-# JPQL - 기본 문법과 기능
+### JPQL - 기본 문법과 기능
 
+### JPQL 소개 - JPQL은 SQL을 추상화해서 특정 데이터베이스 SQL에 의존하지 않는다.
 
-# JPQL 소개
-
-- JPQL은 객체지향 쿼리 언어다.따라서 테이블을 대상으로 쿼리 하는 것이 아니라 엔티티 객체를 대상으로 쿼리 한다.
-- JPQL은 SQL을 추상화해서 특정데이터베이스 SQL에 의존하지 않는다.
+- **JPQL은 객체지향 쿼리 언어**다. 따라서 테이블을 대상으로 쿼리 하는 것이 아니라 **엔티티 객체를 대상으로 쿼리 한다.**
+- **JPQL은 SQL을 추상화해서 특정 데이터베이스 SQL에 의존하지 않는다.**
 - JPQL은 결국 SQL로 변환된다.
 
 ![객체지향 쿼리 언어1](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/f6d808e7-a325-4bca-8654-35ca400d4d0c)
@@ -4095,12 +4094,17 @@ Hibernate:
 # JPQL 문법
 
 ![객체지향 쿼리 언어2](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/1d50005e-70cf-4968-97e3-ff9b1230bd1d)
+- update, delete 문은 **bulk 연산**에 사용된다.
+  - 한방에 여러개의 data 를 변경할 때 사용한다.
+    - jpa 는 원래 값이 변경되면 트랜잭션 커밋 시점에 update 쿼리를 날린다.
+    - 다만, 이것은 한건 한건씩 변경되는 것이고, 여러개를 한번에 변경할 경우에는 bulk 연산을 사용한다.
+    - bulk 연산은 jpa 에서 따로 관리한다.
 
 # JPQL 문법
 
 - select m from **Member** as m where **m.age** > 18
-- 엔티티와 속성은 대소문자 구분O (Member, age)
-- JPQL 키워드는 대소문자 구분X (SELECT, FROM, where)
+- 엔티티와 속성은 대소문자 구분 O (Member, age)
+- JPQL 키워드는 대소문자 구분 X (SELECT, FROM, where)
 - 엔티티 이름 사용, 테이블 이름이 아님(Member)
 - **별칭은 필수(m)** (as는 생략가능)
 
@@ -4109,54 +4113,81 @@ Hibernate:
 
 ```sql
 select
-COUNT (m), //회원수
-SUM (m.age), //나이 합
-AVG (m.age), //평균 나이
-MAX (m.age), //최대 나이
-MIN (m.age) //최소 나이
+    COUNT (m), //회원수
+    SUM (m.age), //나이 합
+    AVG (m.age), //평균 나이
+    MAX (m.age), //최대 나이
+    MIN (m.age) //최소 나이
 from Member m
 ```
 
-# 집합과 정렬
+### 집합과 정렬
 
 - GROUP BY, HAVING
 - ORDER BY
 
 
-# TypeQuery, Query
+### TypedQuery, Query
 
-- TypeQuery: 반환 타입이 명확할 때 사용
+- TypedQuery: 반환 타입이 명확할 때 사용
 - Query: 반환 타입이 명확하지 않을 때 사용
 
 ```java
-TypedQuery<Member> query = em.createQuery("SELECT m FROM Member m", Member.class);
+TypedQuery<Member> query1 = em.createQuery("select m from Member m", Member.class);
+TypedQuery<String> query2 = em.createQuery("select m.username from Member m", String.class);
+Query query3 = em.createQuery("select m.username, m.age from Member m");
 ```
-```java
-Query query = em.createQuery("SELECT m.username, m.age from Member m");
-```
+- projection 을 사용하는 방법도 있긴 하다.
 
-# 결과 조회 API
+### 결과 조회 API
 
-- query.getResultList(): **결과가 하나 이상일 때** , 리스트 반환
+- `query.getResultList()`: **결과가 하나 이상일 때** , 리스트 반환
   - 결과가 없으면 빈 리스트 반환
-- query.getSingleResult(): **결과가 정확히 하나** , 단일 객체 반환
-  - 결과가 없으면: javax.persistence.NoResultException
-  - 둘 이상이면: javax.persistence.NonUniqueResultException
+- `query.getSingleResult()`: **결과가 정확히 하나** , 단일 객체 반환
+  - 결과가 없으면: `javax.persistence.NoResultException`
+  - 둘 이상이면: `javax.persistence.NonUniqueResultException`
+  - getSingleResutl() 는 진짜로 결과가 딱 1개만 있을 때 사용해야 한다.
+  - 사실, spring data jpa 의 내부 코드를 보면 getSingleResult() 를 한 다음에 try catch() 문을 사용한다.
 
 
 # 파라미터 바인딩 - 이름 기준, 위치 기준
 
+**이름 기준 파라미터 바인딩**
 ```java
-SELECT m FROM Member m where m.username= :username
-
-query.setParameter(" **username** ", usernameParam);
+TypedQuery<Member> query = em.createQuery("select m from Member m where m.username = :username", Member.class);
+query.setParameter("username", "member1");
+Member singleResult = query.getSingleResult();
+System.out.println("singleResult.getAge() = " + singleResult.getAge());
 ```
 
+```
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    where
+        m.username = :username */ select
+            m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.username 
+        from
+            Member m1_0 
+        where
+            m1_0.username=?
+singleResult.getAge() = 28
+```
+
+**위치 기준 파라미터 바인딩**
 ```java
 SELECT m FROM Member m where m.username= ?1
 
-query.setParameter( 1 , usernameParam);
+query.setParameter(1 ,usernameParam);
 ```
+
+- 위치 기준 파라미터 바인딩은 웬만하면 쓰지말자. 
+- 순서가 바뀐다면, 다 틀어지기 때문에 안쓰는 것을 추천한다.
 
 # 프로젝션
 
