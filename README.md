@@ -4406,30 +4406,99 @@ age = 28
   - QueryDSL 로 극복이 가능하다.
 
 
-# 페이징 API
+## 페이징 API
 
 - JPA는 페이징을 다음 두 API로 추상화
 - **setFirstResult** (int startPosition) : 조회 시작 위치 (0부터 시작)
 - **setMaxResults** (int maxResult) : 조회할 데이터 수
 
 
-# 페이징 API 예시
+### 페이징 API 예시
 
 ```java
-//페이징 쿼리
-String jpql = "select m from Member m order by m.name **desc** ";
-List<Member> resultList = em.createQuery(jpql, Member.class)
-.setFirstResult( 10 )
-.setMaxResults( 20 )
-.getResultList();
+public static void main(String[] args) {
+  for (int i = 1; i <= 100; i++) {
+    Member member = new Member();
+    member.setUsername("member" + i);
+    member.setAge(i);
+    em.persist(member);
+  }
+
+  em.flush();
+  em.clear();
+
+  // 페이징 쿼리
+  List<Member> result = em.createQuery("select m from Member m order by m.age desc", Member.class)
+    .setFirstResult(1)
+    .setMaxResults(10)
+    .getResultList();
+
+  System.out.println("result.size = " + result.size());
+  for (Member member : result) {
+    System.out.println("member = " + member);
+  }
+}
 ```
 
-# 페이징 API - MySQL 방언
+```
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    order by
+        m.age desc */ select
+            m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.username 
+        from
+            Member m1_0 
+        order by
+            m1_0.age desc 
+        offset
+            ? rows 
+        fetch
+            first ? rows only
+```
 
-![객체지향 쿼리 언어3](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/13f93dca-d3af-4268-9be4-f3904e5c28f8)
+### 페이징 API - MySQL 방언
 
+```xml
+<property name="jakarta.persistence.jdbc.url" value="jdbc:h2:tcp://localhost/~/test;MODE=MySql"/>
+<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
+```
 
-# 페이징 API - Oracle 방언
+```java
+public static void main(String[] args) {
+  List<Member> result = em.createQuery("select m from Member m order by m.age desc", Member.class)
+    .setFirstResult(1)
+    .setMaxResults(10)
+    .getResultList();
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    order by
+        m.age desc */ select
+            m1_0.MEMBER_ID,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.username 
+        from
+            Member m1_0 
+        order by
+            m1_0.age desc 
+        limit
+            ?, ?
+```
+
+### 페이징 API - Oracle 방언
 
 ![객체지향 쿼리 언어4](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/ca87a07b-2a1b-41d1-be2f-8f8f4df1c545)
 
