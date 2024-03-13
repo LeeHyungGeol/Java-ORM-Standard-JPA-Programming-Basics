@@ -4773,20 +4773,24 @@ Hibernate:
  
 > 세타조인은 동등조인이면서 동시에 sql에서 join구문 없이 사용하는 것 
 
-# 서브 쿼리
+## 서브 쿼리
 
 - 나이가 평균보다 많은 회원
+  - 메인 쿼리의 Member m 과 서브 쿼리의 Member m2 가 서로 다른 Member 이다.
+  - 이렇게 하면 성능이 괜찮다.
 
-```
+```java
 select m from Member m where m.age > (select avg(m2.age) from Member m2)
 ```
 - 한 건이라도 주문한 고객
+  - 위의 예제와 달리 메인 쿼리의 Order o 와 서브 쿼리의 Order o 가 같은 Order 이다.
+  - 이렇게 하면 성능이 잘 안나온다.
 
-```
-select m from Member m where **(select count(o) from Order o where m = o.member)** > 0
+```java
+select m from Member m where (select count(o) from Order o where m = o.member) > 0
 ```
 
-# 서브 쿼리 지원 함수
+### 서브 쿼리 지원 함수
 
 - [NOT] EXISTS (subquery): 서브쿼리에 결과가 존재하면 참
   - {ALL | ANY | SOME} (subquery)
@@ -4795,25 +4799,26 @@ select m from Member m where **(select count(o) from Order o where m = o.member)
 - [NOT] IN (subquery): 서브쿼리의 결과 중 하나라도 같은 것이 있으면 참
 
 
-# 서브 쿼리 - 예제
+### 서브 쿼리 - 예제
 
 - 팀A 소속인 회원
-  - select m from Member m where **exists** (select t from m.team t where t.name = ‘팀A')
+  - `select m from Member m where exists (select t from m.team t where t.name = ‘팀A')`
 - 전체 상품 각각의 재고보다 주문량이 많은 주문들
-  - select o from Order o where o.orderAmount > **ALL** (select p.stockAmount from Product p)
+  - `select o from Order o where o.orderAmount > ALL (select p.stockAmount from Product p)`
 - 어떤 팀이든 팀에 소속된 회원
-  - select m from Member m where m.team = **ANY** (select t from Team t)
+  - `select m from Member m where m.team = ANY (select t from Team t)`
 
 
-# JPA 서브 쿼리 한계
+### JPA 서브 쿼리 한계: FROM 절의 서브 쿼리는 현재 JPQL에서 불가능 (조인으로 풀 수 있으면 풀어서 해결)
 
 - JPA는 WHERE, HAVING 절에서만 서브 쿼리 사용 가능
 - SELECT 절도 가능(하이버네이트에서 지원)
-- FROM 절의 서브 쿼리는 현재 JPQL에서 불가능
-- 조인으로 풀 수 있으면 풀어서 해결
+- **FROM 절의 서브 쿼리는 현재 JPQL에서 불가능 -> Hibernate 6 부터 가능!!** 
+  - **조인으로 풀 수 있으면 풀어서 해결**
+  - EX) `select mm.age, mm.username from (select m.age as age, m.username as username from Member as m) as mm`
 
 
-# 하이버네이트 6 변경 사항
+### 하이버네이트 6 변경 사항: 하이버네이트 6 부터는 FROM 절의 서브쿼리를 지원 합니다.
 
 - 하이버네이트 6 부터는 FROM 절의 서브쿼리를 지원 합니다.
 - 참고 링크
