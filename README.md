@@ -4825,7 +4825,24 @@ select m from Member m where (select count(o) from Order o where m = o.member) >
 - https://in.relation.to/2022/06/24/hibernate-orm-61-features/
 
 
-# JPQL 타입 표현
+## JPQL 타입 표현
+
+```java
+String query = "select m.username, 'HELLO', true from Member m";
+em.createQuery(query)
+    .getResultList();
+```
+
+```java
+String query = "select m.username, 'HELLO', true from Member m where m.type = org.example.jpql.domain.MemberType.USER";
+em.createQuery(query)
+    .getResultList();
+```
+
+```java
+em.createQuery("select i from Item i where type(i) = Book", Item.class)
+    .getResultList();
+```
 
 - 문자: ‘HELLO’, ‘She’’s’
 - 숫자: 10L(Long), 10D(Double), 10F(Float)
@@ -4834,7 +4851,13 @@ select m from Member m where (select count(o) from Order o where m = o.member) >
 - 엔티티 타입: TYPE(m) = Member (상속 관계에서 사용)
 
 
-# JPQL 기타
+### JPQL 기타
+
+```java
+String query = "select m.username, 'HELLO', true from Member m where m.username is not null";
+em.createQuery(query)
+    .getResultList();
+```
 
 - SQL과 문법이 같은 식
 - EXISTS, IN
