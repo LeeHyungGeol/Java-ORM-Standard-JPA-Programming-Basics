@@ -4409,6 +4409,13 @@ age = 28
 ## 페이징 API
 
 - JPA는 페이징을 다음 두 API로 추상화
+  - 설정한 Database 방언(Dialect)에 맞게 sql 을 알맞게 날려준다.
+```xml
+<property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+<property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect"/>
+<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
+```
+
 - **setFirstResult** (int startPosition) : 조회 시작 위치 (0부터 시작)
 - **setMaxResults** (int maxResult) : 조회할 데이터 수
 
@@ -4503,31 +4510,268 @@ Hibernate:
 ![객체지향 쿼리 언어4](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/ca87a07b-2a1b-41d1-be2f-8f8f4df1c545)
 
 
-# 조인
+## 조인
+
+***정석적인 것은 역시 양방향으로 연관관계를 set 해주는 것!! **연관관계 편의 메소드**를 만들어주는 것이 좋다!!!***
+
+### 내부 조인 INNER JOIN
 
 - 내부 조인: SELECT m FROM Member m [INNER] JOIN m.team t
+  - 내부조인은 member 는 있고 team 은 없으면 이 데이터가 아예 안나온다.
+    - join 도 객체스럽게 표현한다.
+      - JOIN m.team t
+
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("team1");
+  em.persist(team);
+
+  Member member = new Member();
+  member.setUsername("member1");
+  member.setAge(22);
+  member.changeTeam(team);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  String innerJoinJpql = "select m from Member m inner join m.team t";
+  List<Member> list = em.createQuery(innerJoinJpql, Member.class)
+    .getResultList();
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    inner join
+        m.team t */ select
+            m1_0.MEMBER_ID,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.username 
+        from
+            Member m1_0 
+        join
+            Team t1_0 
+                on t1_0.TEAM_ID=m1_0.TEAM_ID
+```
+
+### 외부 조인 LEFT [OUTER] JOIN
+
 - 외부 조인: SELECT m FROM Member m LEFT [OUTER] JOIN m.team t
+  - 외부조인은 member 는 있고 team 은 없으면 team 의 데이터는 null 로 표현하고, 데이터가 나온다.
+
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("team1");
+  em.persist(team);
+
+  Member member = new Member();
+  member.setUsername("member1");
+  member.setAge(22);
+  member.changeTeam(team);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  String leftOuterJoinJpql = "select m from Member m left outer join Team t on m.id = t.id";
+  List<Member> list = em.createQuery(leftOuterJoinJpql, Member.class)
+    .getResultList();
+
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    left outer join
+        Team t 
+            on m.id = t.id */ select
+                m1_0.MEMBER_ID,
+                m1_0.age,
+                m1_0.TEAM_ID,
+                m1_0.username 
+        from
+            Member m1_0 
+        left join
+            Team t1_0 
+                on m1_0.MEMBER_ID=t1_0.TEAM_ID
+```
+
+### 세타 조인: 아무런 연관관계가 없는 필드로 조인하는 방법
+
 - 세타 조인: select count(m) from Member m, Team t where m.username = t.name
+- 정말 연관관계가 없을 때, 막 조인이라고도 한다.
+  - member, team 을 둘 다 from 에 넣는다. 그렇게 하면 카르테시안 곱을 통해 데이터가 다 곱하기로 불러진다.
+  - where 절의 조건문에 맞는 놈들을 불러온다.
 
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("memberTeam1");
+  em.persist(team);
 
-# 조인 - ON 절
+  Member member = new Member();
+  member.setUsername("memberTeam1");
+  member.setAge(22);
+  member.changeTeam(team);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  String thetaJoin = "select m from Member m, Team t where m.username = t.name";
+  List<Member> list = em.createQuery(thetaJoin, Member.class)
+    .getResultList();
+
+  System.out.println("list.size() = " + list.size());
+
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m,
+        Team t 
+    where
+        m.username = t.name */ select
+            m1_0.MEMBER_ID,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.username 
+        from
+            Member m1_0,
+            Team t1_0 
+        where
+            m1_0.username=t1_0.name
+list.size() = 1
+```
+
+## 조인 - ON 절
 
 - ON절을 활용한 조인(JPA 2.1부터 지원)
 - 1. 조인 대상 필터링
 - 2. 연관관계 없는 엔티티 외부 조인(하이버네이트 5.1부터)
 
 
-# 1. 조인 대상 필터링
+### 1. 조인 대상 필터링
+
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("memberTeam1");
+  em.persist(team);
+
+  Member member = new Member();
+  member.setUsername("memberTeam1");
+  member.setAge(22);
+  member.changeTeam(team);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  String query = "select m,t from Member m left join m.team t on t.name = 'memberTeam1'";
+  em.createQuery(query)
+    .getResultList();
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m,
+        t 
+    from
+        Member m 
+    left join
+        m.team t 
+            on t.name = 'memberTeam1' */ select
+                m1_0.MEMBER_ID,
+                m1_0.age,
+                m1_0.TEAM_ID,
+                m1_0.username,
+                t1_0.TEAM_ID,
+                t1_0.name 
+        from
+            Member m1_0 
+        left join
+            Team t1_0 
+                on t1_0.TEAM_ID=m1_0.TEAM_ID 
+                and t1_0.name='memberTeam1'
+```
 
 - 예) 회원과 팀을 조인하면서, 팀 이름이 A인 팀만 조인
 - JPQL: SELECT m, t FROM Member m LEFT JOIN m.team t on t.name = 'A'
 - SQL: SELECT m.*, t.* FROM Member m LEFT JOIN Team t ON m.TEAM_ID=t.id and t.name='A'
 
-# 2. 연관관계 없는 엔티티 외부 조인
+### 2. 연관관계 없는 엔티티 외부 조인
+
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("memberTeam1");
+  em.persist(team);
+
+  Member member = new Member();
+  member.setUsername("memberTeam1");
+  member.setAge(22);
+  member.changeTeam(team);
+  em.persist(member);
+
+  em.flush();
+  em.clear();
+
+  String query = "select m,t from Member m left join Team t on m.username = t.name";
+  em.createQuery(query)
+    .getResultList();
+
+}
+```
+
+```
+Hibernate: 
+    /* select
+        m,
+        t 
+    from
+        Member m 
+    left join
+        Team t 
+            on m.username = t.name */ select
+                m1_0.MEMBER_ID,
+                m1_0.age,
+                m1_0.TEAM_ID,
+                m1_0.username,
+                t1_0.TEAM_ID,
+                t1_0.name 
+        from
+            Member m1_0 
+        left join
+            Team t1_0 
+                on m1_0.username=t1_0.name
+```
 
 - 예) 회원의 이름과 팀의 이름이 같은 대상 외부 조인
 - JPQL: SELECT m, t FROM Member m LEFT JOIN Team t on m.username = t.name
 - SQL: SELECT m.*, t.* FROM Member m LEFT JOIN Team t ON m.username = t.name
+
+> 세타 조인: 아무런 연관관계가 없는 필드로 조인하는 방법
+ 
+> 세타조인은 동등조인이면서 동시에 sql에서 join구문 없이 사용하는 것 
 
 # 서브 쿼리
 
