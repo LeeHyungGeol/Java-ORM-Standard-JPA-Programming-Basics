@@ -4866,48 +4866,152 @@ em.createQuery(query)
 - BETWEEN, LIKE, IS NULL
 
 
-# 조건식 - CASE 식
+## 조건식 - CASE 식
 
-- 기본 CASE 식
-```
-select
-case when m.age <= 10 then '학생요금'
-when m.age >= 60 then '경로요금'
-else '일반요금'
-end
-from Member m
-```
+### 기본 CASE 식
 
-- 단순 CASE 식
-```
-select
-case t.name
-when '팀A' then '인센티브110%'
-when '팀B' then '인센티브120%'
-else '인센티브105%'
-end
-from Team t
+```java
+public static void main(String[] args) {
+  String query = "select "
+    + "case when m.age <= 10 then '학생요금'"
+    + "     when m.age >= 60 then '경로요금'"
+    + "     else '일반요금' "
+    + "end "
+    + "from Member m";
+  em.createQuery(query).getResultList();
+}
 ```
 
-
-
-
-
-# 조건식 - CASE 식
-
-- COALESCE: 하나씩 조회해서 null이 아니면 반환
-- NULLIF: 두 값이 같으면 null 반환, 다르면 첫번째 값 반환
-
-사용자 이름이 ‘관리자’면 null을 반환하고 나머지는 본인의 이름을 반환
+```
+Hibernate: 
+    /* select
+        case 
+            when m.age <= 10 
+                then '학생요금'     
+            when m.age >= 60 
+                then '경로요금'     
+            else '일반요금' 
+        end 
+    from
+        Member m */ select
+            case 
+                when m1_0.age<=10 
+                    then '학생요금' 
+                when m1_0.age>=60 
+                    then '경로요금' 
+                else '일반요금' 
+            end 
+        from
+            Member m1_0
 
 ```
-select coalesce (m.username,'이름 없는 회원') from Member m
+
+### 단순 CASE 식: case 값을 명확하게 명시하는 case 문
+
+```java
+public static void main(String[] args) {
+  String query = "select "
+    + "case t.name"
+    + "     when '팀A' then '인센티브110%'"
+    + "     when '팀B' then '인센티브120%'"
+    + "     else '인센티브105%'"
+    + "end "
+    + "from Team t";
+  em.createQuery(query).getResultList();
+}
 ```
 
-사용자 이름이 없으면 이름 없는 회원을 반환
+```
+Hibernate: 
+    /* select
+        case t.name     
+            when '팀A' 
+                then '인센티브110%'     
+            when '팀B' 
+                then '인센티브120%'     
+            else '인센티브105%'
+        end 
+    from
+        Team t */ select
+            case t1_0.name 
+                when '팀A' 
+                    then '인센티브110%' 
+                when '팀B' 
+                    then '인센티브120%' 
+                else '인센티브105%' 
+            end 
+        from
+            Team t1_0
+```
+
+### 조건식 - CASE 식
+
+- **COALESCE**: 하나씩 조회해서 null이 아니면 반환
+- **NULLIF**: 두 값이 같으면 null 반환, 다르면 첫번째 값 반환
+
+#### COALESCE: 사용자 이름이 ‘관리자’면 null을 반환하고 나머지는 본인의 이름을 반환
+
+```java
+public static void main(String[] args) {
+  ...
+  Member member = new Member();
+  member.setUsername(null);
+  ...
+  
+  em.flush();
+  em.clear();
+
+  String query = "select coalesce(m.username, '이름 없음') from Member m";
+  List<String> result = em.createQuery(query).getResultList();
+
+  for (String s : result) {
+    System.out.println("username = " + s);
+  }
+}
+```
 
 ```
-select NULLIF (m.username, '관리자') from Member m
+Hibernate: 
+    /* select
+        coalesce(m.username, '이름 없음') 
+    from
+        Member m */ select
+            coalesce(m1_0.username, '이름 없음') 
+        from
+            Member m1_0
+username = 이름 없음
+```
+
+#### NULLIF: 사용자 이름이 없으면 이름 없는 회원을 반환
+
+```java
+public static void main(String[] args) {
+  ...
+  member.setUsername("같은 이름 username");
+  ...
+  
+  em.flush();
+  em.clear();
+
+  String query = "select nullif(m.username, '같은 이름 username') from Member m";
+  List<String> result = em.createQuery(query).getResultList();
+
+  for (String s : result) {
+    System.out.println("username = " + s);
+  }
+}
+```
+
+```
+Hibernate: 
+    /* select
+        nullif(m.username, '같은 이름 username') 
+    from
+        Member m */ select
+            nullif(m1_0.username, '같은 이름 username') 
+        from
+            Member m1_0
+username = null
 ```
 
 # JPQL 기본 함수
