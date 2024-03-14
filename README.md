@@ -5014,7 +5014,7 @@ Hibernate:
 username = null
 ```
 
-# JPQL 기본 함수
+## JPQL 기본 함수
 
 - CONCAT
 - SUBSTRING
@@ -5023,16 +5023,102 @@ username = null
 - LENGTH
 - LOCATE
 - ABS, SQRT, MOD
-- SIZE, INDEX(JPA 용도)
+- SIZE, INDEX(JPA 용도) (INDEX 는 웬만하면 안쓰는게 좋다.)
 
+사실 표준 기본 함수는 몇개 안된다. 나머지는 DB(MySQL, MSSQL, Oracle 등등) 방언에 웬만한 함수들이 다 등록되어 있다
 
-# 사용자 정의 함수 호출
+#### SIZE: 컬렉션의 크기를 반환
 
-- 하이버네이트는 사용전 방언에 추가해야 한다.
-- 사용하는 DB 방언을 상속받고, 사용자 정의 함수를 등록한다.
+```java
+public static void main(String[] args) {
+  String query = "select size(t.members) from Team t";
+  List<Integer> result = em.createQuery(query).getResultList();
+}
+```
 
 ```
-select function ('group_concat', i.name) from Item i
+Hibernate: 
+    /* select
+        size(t.members) 
+    from
+        Team t */ select
+            (select
+                count(1) 
+            from
+                Member m1_0 
+            where
+                t1_0.id=m1_0.TEAM_ID) 
+        from
+            Team t1_0
+size = 1
+```
+
+### 사용자 정의 함수 호출
+
+- 하이버네이트는 사용전 방언에 추가해야 한다.
+  - DB 방언에 추가해놔야 한다.
+- 사용하는 DB 방언을 상속받고, 사용자 정의 함수를 등록한다.
+
+1. FunctionContributer의 구현체를 만들어 준다.
+```java
+public class CustomFunctionContributor implements FunctionContributor {
+
+  @Override
+  public void contributeFunctions(FunctionContributions functionContributions) {
+    functionContributions
+      .getFunctionRegistry()
+      .register("group_concat", new StandardSQLFunction("group_concat", StandardBasicTypes.STRING));
+  }
+}
+```
+
+2. FunctionContributor 의 구현체를 resources/META-INF 에 등록해준다.
+   - `org.hibernate.boot.model.FunctionContributor` 파일을 생성
+   - 패키지명.생성한구현체파일명
+```
+dialect.CustomFunctionContributor
+```
+
+```java
+public static void main(String[] args) {
+  Team team = new Team();
+  team.setName("memberTeam1");
+  em.persist(team);
+
+  Member member = new Member();
+  member.setUsername("같은 이름 username");
+  member.setAge(22);
+  member.changeTeam(team);
+  em.persist(member);
+
+  Member member2 = new Member();
+  member2.setUsername("같은 이름 username");
+  member2.setAge(22);
+  member2.changeTeam(team);
+  em.persist(member2);
+
+  em.flush();
+  em.clear();
+
+  String query = "select function('group_concat', m.username) from Member m";
+  List<String> result = em.createQuery(query).getResultList();
+
+  for (String s : result) {
+    System.out.println("s = " + s);
+  }
+}
+```
+
+```
+Hibernate: 
+    /* select
+        function('group_concat', m.username) 
+    from
+        Member m */ select
+            group_concat(m1_0.username) 
+        from
+            Member m1_0
+s = 같은 이름 username,같은 이름 username
 ```
 
 # JPQL - 경로 표현식
