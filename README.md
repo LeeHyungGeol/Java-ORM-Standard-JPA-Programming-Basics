@@ -5257,53 +5257,110 @@ Hibernate:
 - 묵시적 조인은 조인이 일어나는 상황을 한눈에 파악하기 어려움
 
 
-# JPQL - 페치 조인(fetch join)
+## JPQL - 페치 조인(fetch join)
 
 
-**실무에서 정말정말 중요함**
+***실무에서 정말정말 중요함***
 
 
-# 페치 조인(fetch join)
+## 페치 조인(fetch join)
 
 - SQL 조인 종류X
-- JPQL에서 성능 최적화 를 위해 제공하는 기능
+- **JPQL에서 성능 최적화를 위해 제공하는 기능**
 - 연관된 엔티티나 컬렉션을 SQL 한 번에 함께 조회 하는 기능
 - join fetch 명령어 사용
 - 페치 조인 ::= [ LEFT [OUTER] | INNER ] JOIN FETCH 조인경로
 
 
-# 엔티티 페치 조인
+### 엔티티 페치 조인
 
 - 회원을 조회하면서 연관된 팀도 함께 조회(SQL 한 번에)
 
 - SQL을 보면 회원 뿐만 아니라 팀(T.*) 도 함께 SELECT
 
-- **[JPQL]** : select m from Member m join fetch m.team
-- **[SQL]** : SELECT M.*, **T.*** FROM MEMBER M **INNER JOIN TEAM T** ON M.TEAM_ID=T.ID
+- **[JPQL]** : `select m from Member m join fetch m.team t`
+- **[SQL]** : `SELECT M.*, T.* FROM MEMBER M INNER JOIN TEAM T ON M.TEAM_ID=T.ID`
 
 ![객체지향 쿼리 언어5](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/af67f93e-f665-41c0-953d-c129b1f2cc2a)
 
-# 페치 조인 사용 코드
+### 페치 조인 사용 코드
 
 ```java
-String jpql = "select m from Member m join fetch m.team";
-List<Member> members = em.createQuery(jpql, Member.class)
-.getResultList();
+public static void main(String[] args) {
+  Team teamA = new Team();
+  teamA.setName("teamA");
+  em.persist(teamA);
 
-for (Member member : members) {
-//페치 조인으로 회원과 팀을 함께 조회해서 지연 로딩X
-System.out.println("username = " + member.getUsername() + ", " +
-"teamName = " + member.getTeam().name() );
+  Team teamB = new Team();
+  teamB.setName("teamB");
+  em.persist(teamB);
+
+  Team teamC = new Team();
+  teamC.setName("teamB");
+  em.persist(teamC);
+
+  Member member1 = new Member();
+  member1.setUsername("member1");
+  member1.setAge(22);
+  member1.changeTeam(teamA);
+  em.persist(member1);
+
+  Member member2 = new Member();
+  member2.setUsername("member2");
+  member2.setAge(22);
+  member2.changeTeam(teamA);
+  em.persist(member2);
+
+  Member member3 = new Member();
+  member3.setUsername("member3");
+  member3.setAge(22);
+  member3.changeTeam(teamB);
+  em.persist(member3);
+
+  Member member4 = new Member();
+  member4.setUsername("member4");
+  member4.setAge(22);
+  em.persist(member4);
+
+  em.flush();
+  em.clear();
+
+  String query = "select m from Member m join fetch m.team t";
+  List<Member> result = em.createQuery(query).getResultList();
+
+  for (Member member : result) {
+    System.out.println("member = " + member.getUsername() + ", " + member.getTeam().getName());
+  }
 }
 ```
 
 ```
-username = 회원1, teamname = 팀A
-username = 회원2, teamname = 팀A
-username = 회원3, teamname = 팀B
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    join
+        
+    fetch
+        m.team t */ select
+            m1_0.id,
+            m1_0.age,
+            t1_0.id,
+            t1_0.name,
+            m1_0.type,
+            m1_0.username 
+        from
+            Member m1_0 
+        join
+            Team t1_0 
+                on t1_0.id=m1_0.TEAM_ID
+member = member1, teamA
+member = member2, teamA
+member = member3, teamB
 ```
 
-# 컬렉션 페치 조인
+### 컬렉션 페치 조인
 
 - 일대다 관계, 컬렉션 페치 조인
 - **[JPQL]** select t from Team t **join fetch t.members** where t.name = ‘팀A'
@@ -5311,62 +5368,113 @@ username = 회원3, teamname = 팀B
 
 ![객체지향 쿼리 언어6](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/879dd1c4-b17c-4371-bb4a-ee920b36a0ba)
 
-# 컬렉션 페치 조인 사용 코드
+### 컬렉션 페치 조인 사용 코드
+
+**하이버네이트6 부터는 distinct 명령어를 사용하지 않아도 엔티티의 중복을 제거하도록 변경되었습니다.**
 
 ```java
-String jpql = "select t from Team t join fetch t.members where t.name = '팀A'"
-List<Team> teams = em.createQuery(jpql, Team.class).getResultList();
+public static void main(String[] args) {
+  String query = "select t from Team t join fetch t.members m";
+  List<Team> result = em.createQuery(query, Team.class).getResultList();
 
-for(Team team : teams) {
-System.out.println("teamname = " + team.getName() + ", team = " + team);
-for (Member member : team.getMembers()) {
-//페치 조인으로 팀과 회원을 함께 조회해서 지연 로딩 발생 안함
-System.out.println(“-> username = " + **member.getUsername()** + ", member = " + member);
+  System.out.println("result.size() = " + result.size());
+
+  for (Team t : result) {
+    System.out.println("team = " + t.getName());
+    for (Member m : t.getMembers()) {
+      System.out.println("-> member = " + m.getUsername());
+    }
+  }
 }
-}
-```
-```
-teamname = 팀A, team = Team@0x100
--> username = 회원1, member = Member@0x200
--> username = 회원2, member = Member@0x300
-teamname = 팀A, team = Team@0x100
--> username = 회원1, member = Member@0x200
--> username = 회원2, member = Member@0x300
 ```
 
-# 페치 조인과 DISTINCT
+```
+Hibernate: 
+    /* select
+        t 
+    from
+        Team t 
+    join
+        
+    fetch
+        t.members m */ select
+            t1_0.id,
+            m1_0.TEAM_ID,
+            m1_0.id,
+            m1_0.age,
+            m1_0.type,
+            m1_0.username,
+            t1_0.name 
+        from
+            Team t1_0 
+        join
+            Member m1_0 
+                on t1_0.id=m1_0.TEAM_ID
+result.size() = 2
+team = teamA
+-> member = member1
+-> member = member2
+team = teamB
+-> member = member3
+```
+
+### 페치 조인과 DISTINCT
 
 - SQL의 DISTINCT는 중복된 결과를 제거하는 명령
 - JPQL의 DISTINCT 2가지 기능 제공
   - 1. SQL에 DISTINCT를 추가
   - 2. 애플리케이션에서 엔티티 중복 제거
 
-
-# 페치 조인과 DISTINCT
-
 ![객체지향 쿼리 언어7](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/0919b759-5b61-431c-87d4-871e372122d4)
 
-- select **distinct** t
-  from Team t join fetch t.members
-  where t.name = ‘팀A’
+```sql
+select distinct t
+from Team t join fetch t.members
+where t.name = '팀A'
+```
+
 - SQL에 DISTINCT를 추가하지만 데이터가 다르므로 SQL 결과에서 중복제거 실패
 
 
-# 페치 조인과 DISTINCT
+### 페치 조인과 DISTINCT
 
 ![객체지향 쿼리 언어8](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/cadc4770-caa0-49a7-9b6c-155ed6bae2b6)
 
--  DISTINCT가 추가로 애플리케이션에서 중복 제거시도
+- DISTINCT 가 추가로 애플리케이션에서 중복 제거시도
 - 같은 식별자를 가진 **Team 엔티티 제거**
 
 ```
 [DISTINCT 추가시 결과]
-teamname = 팀A, team = Team@0x100
--> username = 회원1, member = Member@0x200
--> username = 회원2, member = Member@0x300
+Hibernate: 
+    /* select
+        distinct t 
+    from
+        Team t 
+    join
+        
+    fetch
+        t.members m */ select
+            distinct t1_0.id,
+            m1_0.TEAM_ID,
+            m1_0.id,
+            m1_0.age,
+            m1_0.type,
+            m1_0.username,
+            t1_0.name 
+        from
+            Team t1_0 
+        join
+            Member m1_0 
+                on t1_0.id=m1_0.TEAM_ID
+result.size() = 2
+team = teamA
+-> member = member1
+-> member = member2
+team = teamB
+-> member = member3
 ```
 
-# 하이버네이트 6 변경 사항
+### 하이버네이트 6 변경 사항
 
 - DISTINCT가 추가로 애플리케이션에서 중복 제거시도
 - -> 하이버네이트 6 부터는 DISTINCT 명령어를 사용하지 않아도 애플리케이션에서 중복 제거가 자동으로 적용됩니다.
@@ -5374,32 +5482,33 @@ teamname = 팀A, team = Team@0x100
 - https://www.inflearn.com/questions/717679
 
 
-# 페치 조인과 일반 조인의 차이
+## 페치 조인과 일반 조인의 차이
 
-- 일반 조인 실행시 연관된 엔티티를 함께 조회하지 않음
+<img width="665" alt="스크린샷 2024-03-15 오전 11 23 06" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/71de7e22-408a-4bcd-943e-5fb004fc977c">
+
+- **em.find()로 엔티티를 직접 조회하는 부분은 빼고, JPQL을 했을 경우로 한정하면 정확합니다.**
+
+***일반 조인 실행시 연관된 엔티티를 함께 조회하지 않음***
+
 - **[JPQL]**
-  select t
+  `select t
   from Team t join t.members m
-  where t.name = ‘팀A'
+  where t.name = '팀A'`
 - **[SQL]**
-  SELECT **T.***
+  `SELECT T.*
   FROM TEAM T
   INNER JOIN MEMBER M ON T.ID=M.TEAM_ID
-  WHERE T.NAME = '팀A'
+  WHERE T.NAME = '팀A'`
 
 
-# 페치 조인과 일반 조인의 차이
-
-- JPQL은 결과를 반환할 때 연관관계 고려X
-- 단지 SELECT 절에 지정한 엔티티만 조회할 뿐
+- JPQL은 결과를 반환할 때 연관관계 고려X, 단지 SELECT 절에 지정한 엔티티만 조회할 뿐
 - 여기서는 팀 엔티티만 조회하고, 회원 엔티티는 조회X
-
-
-# 페치 조인과 일반 조인의 차이
-
 - 페치 조인을 사용할 때만 연관된 엔티티도 함께 조회(즉시 로딩)
-- 페치 조인은 객체 그래프를 SQL 한번에 조회하는 개념
+- **페치 조인은 *객체 그래프*를 SQL 한번에 조회하는 개념**
 
+### 즉시 로딩(EAGER)과 패치조인
+
+em.find() 등을 통해서 엔티티 하나만 조회할 때는 즉시 로딩으로 설정하면 연관된 팀도 한 쿼리로 가져오도록 최적화 되지만 JPQL을 사용하면 이야기가 달라집니다. JPQL은 연관관계를 즉시로딩으로 설정하는 것과 상관없이 JPQL 자체만으로 SQL로 그대로 번역됩니다.
 
 # 페치 조인 실행 예시
 
