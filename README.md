@@ -238,7 +238,7 @@ Hibernate:
 
 > 만약 진짜로 의도하고 2개 다 변경하게 만들고 싶었다면, Address 를 임베디드 타입이 아닌, Entity 로 만들어야 맞다. 값 타입은 side effect 가 있으면 안된다.
 
-# 값 타입 복사
+## 값 타입 복사
 
 ![값타입7](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/8b34ee47-9848-476e-885e-90a086e0956e)
 
