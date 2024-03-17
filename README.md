@@ -5930,20 +5930,24 @@ public interface UserRepository implements JpaRepository<User, Long> {
 }
 ```
 
-# JPQL - 벌크 연산
+## JPQL - 벌크 연산
 
+### 벌크 연산
 
-# 벌크 연산
+> 벌크연산이란? PK를 통해 데이터 한건을 변경하는 것을 제외한 나머지 모든 update, delete 문을 의미. 여러건을 변경하는 것 
 
+**EX) 벌크 연산을 사용하지 않았을 때의 예시**
 - 재고가 10 개 미만인 모든 상품의 가격을 10% 상승하려면?
 - JPA 변경 감지 기능으로 실행하려면 너무 많은 SQL 실행
   - 1. 재고가 10 개 미만인 상품을 리스트로 조회한다.
   - 2. 상품 엔티티의 가격을 10% 증가한다.
-  - 3. 트랜잭션 커밋 시점에 변경감지가 동작한다.
+  - 3. 트랜잭션 커밋 시점에 변경감지가 동작한다. 
+
+**EX) 벌크 연산을 사용할 때**
 - 변경된 데이터가 100 건이라면 100 번의 UPDATE SQL 실행
 
 
-# 벌크 연산 예제
+### 벌크 연산 예제
 
 - 쿼리 한 번으로 여러 테이블 로우 변경(엔티티)
 - **executeUpdate()의 결과는 영향받은 엔티티 수 반환**
@@ -5951,17 +5955,189 @@ public interface UserRepository implements JpaRepository<User, Long> {
 - **INSERT(insert into .. select, 하이버네이트 지원)**
 
 ```java
-String qlString = "update Product p " +
-"set p.price = p.price * 1.1 " +
-"where p.stockAmount < :stockAmount";
+public static void main(String[] args) {
+  // flush() 자동 호출된다. flush() 는 commit 이 될 때, query 가 나갈 때, flush() 를 직접 호출할 때 호출된다. 
+  int count = em.createQuery("update Member m set age = 10")
+    .executeUpdate();
 
-int resultCount = em.createQuery(qlString)
-.setParameter("stockAmount", 10)
-.executeUpdate();
+  System.out.println("count = " + count);
+}
 ```
 
-# 벌크 연산 주의
+```
+Hibernate: 
+    /* update
+        Member m 
+    set
+        age = 10 */ update Member 
+    set
+        age=10
+count = 4
+```
+
+```java
+public static void main(String[] args) {
+  String qlString = "update Product p " +
+    "set p.price = p.price * 1.1 " +
+    "where p.stockAmount < :stockAmount";
+
+  int resultCount = em.createQuery(qlString)
+    .setParameter("stockAmount", 10)
+    .executeUpdate();
+}
+```
+
+### 벌크 연산 주의
 
 - 벌크 연산은 영속성 컨텍스트를 무시하고 데이터베이스에 직접 쿼리
-  - 벌크 연산을 먼저 실행
-  - 벌크 연산 수행 후 영속성 컨텍스트 초기화
+  - 벌크 연산도 flush 는 된다. jpql 이 실행되고 sql 로 변형해서 쿼리가 나가는 것이기 때문에
+    - flush() 는 commit 이 될 때, query 가 나갈 때, flush() 를 직접 호출할 때 호출된다.
+
+**벌크 연산을 사용하는 2가지 방법**
+1. 영속성 컨텍스트에 값을 아무것도 넣지 않은 상태에서 **벌크 연산을 먼저 실행**
+2. 영속성 컨텍스트 안에 다른 값들이 이미 존재해서 불안할 떄, **벌크 연산 수행 후 영속성 컨텍스트 초기화한다.**
+
+
+### 벌크 연산 주의점 예시
+
+모든 Member 의 age 를 10 으로 변경해서 db 에는 10 으로 변경한 것이 확인되지만, 영속성 컨텍스트안의 member 들은 그대로 age 가 변경되기 전으로 나온다.
+
+```java
+public static void main(String[] args) {
+  Team teamA = new Team();
+  teamA.setName("teamA");
+  em.persist(teamA);
+
+  Team teamB = new Team();
+  teamB.setName("teamB");
+  em.persist(teamB);
+
+  Team teamC = new Team();
+  teamC.setName("teamB");
+  em.persist(teamC);
+
+  Member member1 = new Member();
+  member1.setUsername("member1");
+  member1.setAge(22);
+  member1.changeTeam(teamA);
+  em.persist(member1);
+
+  Member member2 = new Member();
+  member2.setUsername("member2");
+  member2.setAge(22);
+  member2.changeTeam(teamA);
+  em.persist(member2);
+
+  Member member3 = new Member();
+  member3.setUsername("member3");
+  member3.setAge(22);
+  member3.changeTeam(teamB);
+  em.persist(member3);
+
+  Member member4 = new Member();
+  member4.setUsername("member4");
+  member4.setAge(22);
+  em.persist(member4);
+
+  int count = em.createQuery("update Member m set age = 10")
+    .executeUpdate();
+
+  System.out.println("count = " + count);
+  System.out.println("member1.getAge() = " + member1.getAge());
+  System.out.println("member1.getAge() = " + member2.getAge());
+  System.out.println("member1.getAge() = " + member3.getAge());
+  System.out.println("member1.getAge() = " + member4.getAge());
+}
+```
+
+```
+Hibernate: 
+    /* update
+        Member m 
+    set
+        age = 10 */ update Member 
+    set
+        age=10
+count = 4
+member1.getAge() = 22
+member1.getAge() = 22
+member1.getAge() = 22
+member1.getAge() = 22
+```
+
+이때 em.find() 로 새로 조회해와도 똑같다. 똑같이 update 문이 반영이 안된 age 가 나온다.
+
+```java
+public static void main(String[] args) {
+  int count = em.createQuery("update Member m set age = 10")
+    .executeUpdate();
+
+  Member findMember = em.find(Member.class, member2.getId());
+  System.out.println("findMember.getAge() = " + findMember.getAge());
+}
+```
+
+```
+Hibernate: 
+    /* update
+        Member m 
+    set
+        age = 10 */ update Member 
+    set
+        age=10
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.age,
+        m1_0.TEAM_ID,
+        m1_0.type,
+        m1_0.username 
+    from
+        Member m1_0 
+    where
+        m1_0.id=?
+findMember.getAge() = 22
+```
+
+***결국에는 `.executeUpdate()` 실행 이후에, `em.clear()` 로 영속성 컨텍스트에 아무것도 없게(초기화) 만들어놔야 한다.***
+
+```java
+public static void main(String[] args) {
+  int count = em.createQuery("update Member m set age = 10")
+    .executeUpdate();
+  Member beforeClearMember = em.find(Member.class, member2.getId());
+  System.out.println("beforeClearMember.getAge() = " + beforeClearMember.getAge());
+  System.out.println("member1.getAge() = " + member1.getAge());
+
+  em.clear();
+
+  Member afterClearMember = em.find(Member.class, member2.getId());
+  System.out.println("afterClearMember.getAge() = " + afterClearMember.getAge());
+  System.out.println("member1.getAge() = " + member1.getAge());
+}
+```
+
+```
+Hibernate: 
+    /* update
+        Member m 
+    set
+        age = 10 */ update Member 
+    set
+        age=10
+beforeClearMember.getAge() = 22
+member1.getAge() = 22
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.age,
+        m1_0.TEAM_ID,
+        m1_0.type,
+        m1_0.username 
+    from
+        Member m1_0 
+    where
+        m1_0.id=?
+afterClearMember.getAge() = 10
+member1.getAge() = 22
+```
