@@ -5662,64 +5662,176 @@ team = teamB
   - `select i.* from Item i where i.DTYPE = ‘B’ and i.author = 'kim'`
 
 
-# JPQL - 엔티티 직접 사용
+## JPQL - 엔티티 직접 사용
 
 
-# 엔티티 직접 사용 - 기본 키 값
+### 엔티티 직접 사용 - 기본 키 값
 
-- JPQL에서 엔티티를 직접 사용하면 SQL에서 해당 엔티티의 기
-- 본 키 값을 사용
+- JPQL에서 엔티티(ex: count(m))를 직접 사용하면 SQL에서 해당 **엔티티의 기본 키 값**을 사용
 - **[JPQL]**
-  select **count(m.id)** from Member m //엔티티의 아이디를 사용
-  select **count(m)** from Member m //엔티티를 직접 사용
+  - select **count(m.id)** from Member m //엔티티의 아이디를 사용 
+  - select **count(m)** from Member m //엔티티를 직접 사용
 - **[SQL]** (JPQL 둘다 같은 다음 SQL 실행)
   select count(m.id) as cnt from Member m
 
 
-# 엔티티 직접 사용 - 기본 키 값
+### 엔티티 직접 사용 - 기본 키 값
 
-엔티티를 파라미터로 전달
+- 엔티티를 **파라미터(`where m =:member`)로** 전달
 ```java
-String jpql = "select m from Member m where m = :member";
-List resultList = em.createQuery(jpql)
-.setParameter("member", member )
-.getResultList();
+public static void main(String[] args) {
+  String query = "select m from Member m where m =:member";
+  Member findMember = em.createQuery(query, Member.class)
+    .setParameter("member", member2)
+    .getSingleResult();
+
+  System.out.println("findMember = " + findMember);
+}
 ```
 
-식별자를 직접 전달
+```sql
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    where
+        m =:member */ select
+            m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.type,
+            m1_0.username 
+        from
+            Member m1_0 
+        where
+            m1_0.id=?
+findMember = Member{id=2, username='member2', age=22, type=null}
+```
+
+- 식별자를 **직접 전달 (`where m.id =:memberId`)**
 ```java
-String jpql = “select m from Member m where m.id = :memberId ”;
-List resultList = em.createQuery(jpql)
-.setParameter("memberId", memberId )
-.getResultList();
+public static void main(String[] args) {
+  String query = "select m from Member m where m.id =:memberId";
+  Member findMember = em.createQuery(query, Member.class)
+    .setParameter("memberId", member2.getId())
+    .getSingleResult();
+
+  System.out.println("findMember = " + findMember);
+}
 ```
 
-실행된 SQL
+```sql
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    where
+        m.id =:memberId */ select
+            m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.type,
+            m1_0.username 
+        from
+            Member m1_0 
+        where
+            m1_0.id=?
+findMember = Member{id=2, username='member2', age=22, type=null}
 ```
+
+
+- 실행된 SQL
+  - `where m1_0.id=?`
+```sql
 select m.* from Member m where m.id=?
 ```
 
-# 엔티티 직접 사용 - 외래 키 값
+### 엔티티 직접 사용 - 외래 키 값
 
+- entity 를 파라미터로 전달
 ```java
-Team team = em.find(Team.class, 1L);
+public static void main(String[] args) {
+  String query = "select m from Member m where m.team = :team";
+  List<Member> result = em.createQuery(query, Member.class)
+    .setParameter("team", teamA)
+    .getResultList();
 
-String qlString = “select m from Member m where m.team = :team ”;
-List resultList = em.createQuery(qlString)
-.setParameter("team", team )
-.getResultList();
+  for (Member member : result) {
+    System.out.println("member = " + member);
+  }
+}
 ```
 
+```sql
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    where
+        m.team = :team */ select
+            m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.type,
+            m1_0.username 
+        from
+            Member m1_0 
+        where
+            m1_0.TEAM_ID=?
+member = Member{id=1, username='member1', age=22, type=null}
+member = Member{id=2, username='member2', age=22, type=null}
 ```
-String qlString = “select m from Member m where m.team.id = :teamId ”;
-List resultList = em.createQuery(qlString)
-.setParameter("teamId", teamId )
-.getResultList();
+
+- 식별자를 전달
+```java
+public static void main(String[] args) {
+  String query = "select m from Member m where m.team.id = :teamId";
+  List<Member> result = em.createQuery(query, Member.class)
+    .setParameter("teamId", teamA.getId())
+    .getResultList();
+
+  for (Member member : result) {
+    System.out.println("member = " + member);
+  }
+}
+```
+
+```sql
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    where
+        m.team.id = :teamId */ select
+            m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.type,
+            m1_0.username 
+        from
+            Member m1_0 
+        where
+            m1_0.TEAM_ID=?
+member = Member{id=1, username='member1', age=22, type=null}
+member = Member{id=2, username='member2', age=22, type=null}
 ```
 
 **실행된 SQL**
-```
-select m.* from Member m where m.team_id =?
+- `m1_0.TEAM_ID=?`
+```sql
+select m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.type,
+            m1_0.username 
+        from
+            Member m1_0 
+        where
+            m1_0.TEAM_ID=?
 ```
 
 # JPQL - Named 쿼리
