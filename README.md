@@ -5633,38 +5633,33 @@ team = teamB
 > **3. 그냥 처음부터 jpql 작성할 때 부터 new operation 으로 DTO 로 변환해서 가져온다.**
 
 
-# JPQL - 다형성 쿼리
+## JPQL - 다형성 쿼리
 
 ![객체지향 쿼리 언어9](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/3a1acde0-76a1-4e87-a6f7-06d1101854e2)
 
-# TYPE
+### TYPE
 
 - 조회 대상을 특정 자식으로 한정
 - 예) Item 중에 Book, Movie를 조회해라
-- **[JPQL]**
-  select i from Item i
-  where **type(i)** IN (Book, Movie)
-- **[SQL]**
-  select i from i
-  where i.DTYPE in (‘B’, ‘M’)
+  - **`type(i)`**
+- **[JPQL]** 
+  - `select i from Item i where type(i) IN (Book, Movie)`
+- **[SQL]** 
+  - `select i from i where i.DTYPE in ('B', 'M')`
 
 
-# TREAT(JPA 2.1)
+### TREAT(JPA 2.1)
 
 - 자바의 타입 캐스팅과 유사
 - 상속 구조에서 부모 타입을 특정 자식 타입으로 다룰 때 사용
 - FROM, WHERE, SELECT(하이버네이트 지원) 사용
-
-
-# TREAT(JPA 2.1)
-
 - 예) 부모인 Item과 자식 Book이 있다.
+  - **`treat(i as Book)`**
+- 아래의 쿼리는 `InheritanceType.SINGLE_TABLE` (싱글테이블) 전략을 예시로 쿼리가 나가는 것이다.
 - **[JPQL]**
-  select i from Item i
-  where treat(i as Book).author = ‘kim’
+  - `select i from Item i where treat(i as Book).author = 'kim'`
 - **[SQL]**
-  select i.* from Item i
-  where i.DTYPE = ‘B’ and i.author = ‘kim’
+  - `select i.* from Item i where i.DTYPE = ‘B’ and i.author = 'kim'`
 
 
 # JPQL - 엔티티 직접 사용
@@ -5685,7 +5680,7 @@ team = teamB
 
 엔티티를 파라미터로 전달
 ```java
-String jpql = “select m from Member m where m = :member ”;
+String jpql = "select m from Member m where m = :member";
 List resultList = em.createQuery(jpql)
 .setParameter("member", member )
 .getResultList();
