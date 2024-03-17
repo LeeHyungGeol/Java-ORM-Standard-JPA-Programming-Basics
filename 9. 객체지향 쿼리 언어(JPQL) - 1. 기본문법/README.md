@@ -1,20 +1,73 @@
-# 자바 ORM 표준 JPA 프로그래밍 - 기본편
+# 9. 객체지향 쿼리 언어(JPQL) - 1. 기본문법
 
 ## Index
-- [1. Hello JPA - 애플리케이션 개발 시작](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/1.%20Hello%20JPA%20-%20%EC%95%A0%ED%94%8C%EB%A6%AC%EC%BC%80%EC%9D%B4%EC%85%98%20%EA%B0%9C%EB%B0%9C%20%EC%8B%9C%EC%9E%91)
-- [2. 영속성 관리](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/2.%20%EC%98%81%EC%86%8D%EC%84%B1%20%EA%B4%80%EB%A6%AC)
-- [3. 엔티티 매핑](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/3.%20%EC%97%94%ED%8B%B0%ED%8B%B0%20%EB%A7%A4%ED%95%91#%EA%B6%8C%EC%9E%A5%ED%95%98%EB%8A%94-%EC%8B%9D%EB%B3%84%EC%9E%90-%EC%A0%84%EB%9E%B5)
-- [4. 연관관계 매핑 기초](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/4.%20%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84%20%EB%A7%A4%ED%95%91%20%EA%B8%B0%EC%B4%88)
-- [5. 다양한 연관관계 매핑](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/5.%20%EB%8B%A4%EC%96%91%ED%95%9C%20%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84%20%EB%A7%A4%ED%95%91)
-- [6. 고급 매핑](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/6.%20%EA%B3%A0%EA%B8%89%20%EB%A7%A4%ED%95%91)
-- [7. 프록시와 연관관계 관리](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/7.%20%ED%94%84%EB%A1%9D%EC%8B%9C%EC%99%80%20%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84%20%EA%B4%80%EB%A6%AC)
-- [8. 값 타입](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/8.%20%EA%B0%92%20%ED%83%80%EC%9E%85)
-
-# 객체지향 쿼리 언어(JPQL)
+- [객체지향 쿼리 언어 소개](#객체지향-쿼리-언어-소개)
+  - [JPA는 다양한 쿼리 방법을 지원](#jpa는-다양한-쿼리-방법을-지원)
+  - [JPQL 소개](#jpql-소개)
+    - [JPQL: 엔티티 객체를 대상으로 하는 객체 지향 SQL](#jpql-엔티티-객체를-대상으로-하는-객체-지향-sql)
+    - [JPQL 과 SQL](#jpql-과-sql)
+  - [Criteria 소개](#criteria-소개)
+  - [QueryDSL 소개](#querydsl-소개)
+  - [네이티브 SQL 소개](#네이티브-sql-소개)
+  - [JDBC 직접 사용, SpringJdbcTemplate 등](#jdbc-직접-사용-springjdbctemplate-등)
+- [JPQL(Java Persistence Query Language)](#jpqljava-persistence-query-language)
+  - [JPQL - 기본 문법과 기능](#jpql---기본-문법과-기능)
+  - [JPQL 소개 - JPQL은 SQL을 추상화해서 특정 데이터베이스 SQL에 의존하지 않는다.](#jpql-소개---jpql은-sql을-추상화해서-특정-데이터베이스-sql에-의존하지-않는다)
+- [JPQL 문법](#jpql-문법)
+  - [집합과 정렬](#집합과-정렬)
+  - [TypedQuery, Query](#typedquery-query)
+  - [결과 조회 API](#결과-조회-api)
+  - [파라미터 바인딩 - 이름 기준, 위치 기준](#파라미터-바인딩---이름-기준-위치-기준)
+- [프로젝션](#프로젝션)
+  - [SELECT m FROM Member m -> 엔티티 프로젝션(entity projection)](#select-m-from-member-m---엔티티-프로젝션entity-projection)
+  - [SELECT **m.team** FROM Member m -> 엔티티 프로젝션(entity projection)](#select-mteam-from-member-m---엔티티-프로젝션entity-projection)
+  - [SELECT **m.address** FROM Member m -> 임베디드 타입 프로젝션(embedded type projection)](#select-maddress-from-member-m---임베디드-타입-프로젝션embedded-type-projection)
+  - [SELECT **m.username, m.age** FROM Member m -> 스칼라 타입 프로젝션(scalar type projection)](#select-musername-mage-from-member-m---스칼라-타입-프로젝션scalar-type-projection)
+  - [프로젝션 - 여러 값 조회](#프로젝션---여러-값-조회)
+    - [1. Query 타입으로 조회](#1-query-타입으로-조회)
+    - [2. Object[] 타입으로 조회](#2-object-타입으로-조회)
+    - [3. new 명령어로 조회](#3-new-명령어로-조회)
+- [페이징 API](#페이징-api)
+  - [페이징 API 예시](#페이징-api-예시)
+  - [페이징 API - MySQL 방언](#페이징-api---mysql-방언)
+  - [페이징 API - Oracle 방언](#페이징-api---oracle-방언)
+- [조인](#조인)
+  - [내부 조인 INNER JOIN](#내부-조인-inner-join)
+  - [외부 조인 LEFT [OUTER] JOIN](#외부-조인-left-outer-join)
+  - [세타 조인: 아무런 연관관계가 없는 필드로 조인하는 방법](#세타-조인-아무런-연관관계가-없는-필드로-조인하는-방법)
+- [조인 - ON 절](#조인---on-절)
+  - [1. 조인 대상 필터링](#1-조인-대상-필터링)
+  - [2. 연관관계 없는 엔티티 외부 조인](#2-연관관계-없는-엔티티-외부-조인)
+- [서브 쿼리](#서브-쿼리)
+  - [서브 쿼리 지원 함수](#서브-쿼리-지원-함수)
+  - [서브 쿼리 - 예제](#서브-쿼리---예제)
+  - [JPA 서브 쿼리 한계: FROM 절의 서브 쿼리는 현재 JPQL에서 불가능 (조인으로 풀 수 있으면 풀어서 해결)](#jpa-서브-쿼리-한계-from-절의-서브-쿼리는-현재-jpql에서-불가능-조인으로-풀-수-있으면-풀어서-해결)
+  - [하이버네이트 6 변경 사항: 하이버네이트 6 부터는 FROM 절의 서브쿼리를 지원 합니다.](#하이버네이트-6-변경-사항-하이버네이트-6-부터는-from-절의-서브쿼리를-지원-합니다)
+- [JPQL 타입 표현](#jpql-타입-표현)
+  - [JPQL 기타](#jpql-기타)
+- [조건식 - CASE 식](#조건식---case-식)
+  - [기본 CASE 식](#기본-case-식)
+  - [단순 CASE 식: case 값을 명확하게 명시하는 case 문](#단순-case-식-case-값을-명확하게-명시하는-case-문)
+  - [조건식 - COALESCE,NULLIF](#조건식---coalescenullif)
+    - [COALESCE: 사용자 이름이 ‘관리자’면 null을 반환하고 나머지는 본인의 이름을 반환](#coalesce-사용자-이름이-관리자면-null을-반환하고-나머지는-본인의-이름을-반환)
+    - [NULLIF: 사용자 이름이 없으면 이름 없는 회원을 반환](#nullif-사용자-이름이-없으면-이름-없는-회원을-반환)
+- [JPQL 기본 함수](#jpql-기본-함수)
+    - [SIZE: 컬렉션의 크기를 반환](#size-컬렉션의-크기를-반환)
+  - [사용자 정의 함수 호출](#사용자-정의-함수-호출)
+- [JPQL - 경로 표현식](#jpql---경로-표현식)
+  - [경로 표현식](#경로-표현식)
+  - [경로 표현식 용어 정리: 상태 필드, 단일 값 연관 필드, 컬렉션 값 연관 필드](#경로-표현식-용어-정리-상태-필드-단일-값-연관-필드-컬렉션-값-연관-필드)
+  - [경로 표현식 특징](#경로-표현식-특징)
+  - [상태 필드 경로 탐색](#상태-필드-경로-탐색)
+  - [단일 값 연관 경로 탐색](#단일-값-연관-경로-탐색)
+  - [명시직 조인, 묵시적 조인](#명시직-조인-묵시적-조인)
+  - [경로 표현식 - 예제](#경로-표현식---예제)
+  - [경로 탐색을 사용한 묵시적 조인 시 주의사항](#경로-탐색을-사용한-묵시적-조인-시-주의사항)
+  - [조인에 관한 실무 조언](#조인에-관한-실무-조언)
 
 ## 객체지향 쿼리 언어 소개
 
-## JPA는 다양한 쿼리 방법을 지원
+### JPA는 다양한 쿼리 방법을 지원
 
 - **JPQL**
 - JPA Criteria
@@ -31,7 +84,7 @@
 - **나이가 18 살 이상인 회원을 모두 검색하고 싶다면?**
 
 
-## JPQL: 엔티티 객체를 대상으로 하는 객체 지향 SQL
+#### JPQL: 엔티티 객체를 대상으로 하는 객체 지향 SQL
 
 - SQL 과 굉장히 유사한 문법이 제공
 - JPA를 사용하면 **엔티티 객체를 중심으로 개발**
@@ -42,7 +95,7 @@
 - JPA는 **SQL을 추상화**한 JPQL이라는 ***객체 지향 쿼리 언어 제공***
 - SQL과 문법 유사, SELECT, FROM, WHERE, GROUP BY, HAVING, JOIN 지원
 
-### JPQL 과 SQL
+#### JPQL 과 SQL
 
 - JPQL은 **엔티티 객체**를 대상으로 쿼리
 - SQL은 **데이터베이스 테이블**을 대상으로 쿼리
@@ -56,7 +109,7 @@ public static void main(String[] args) {
 }
 ```
 
-- `select m` 이라고 하는 것은 **member entity 자체**를 조회 해온다는 뜻이다. 
+- `select m` 이라고 하는 것은 **member entity 자체**를 조회 해온다는 뜻이다.
 
 ```
 Hibernate: 
@@ -80,7 +133,7 @@ Hibernate:
 
 그러나 동적쿼리를 짜는데, jpql 은 많이 불편하다.
 
-## Criteria 소개
+### Criteria 소개
 
 ```java
 //Criteria 사용 준비
@@ -118,7 +171,7 @@ Hibernate:
 - Criteria 대신에 **QueryDSL 사용 권장**
 
 
-## QueryDSL 소개
+### QueryDSL 소개
 
 ```java
 //JPQL
@@ -140,7 +193,7 @@ List<Member> list = query.selectFrom(m)
 - ***실무 사용 권장!!!!!***
 
 
-## 네이티브 SQL 소개
+### 네이티브 SQL 소개
 
 - JPA가 제공하는 SQL을 직접 사용하는 기능
 - JPQL로 해결할 수 없는 특정 데이터베이스에 의존적인 기능
@@ -164,7 +217,7 @@ Hibernate:
         USERNAME = 'lee'
 ```
 
-## JDBC 직접 사용, SpringJdbcTemplate 등
+### JDBC 직접 사용, SpringJdbcTemplate 등
 
 ***단, 영속성 컨텍스트를 적절한 시점에 강제로 플러시(`em.flush()`) 필요***
 
@@ -211,8 +264,6 @@ select
     MIN (m.age) //최소 나이
 from Member m
 ```
-
-### 집합과 정렬
 
 - GROUP BY, HAVING
 - ORDER BY
@@ -277,7 +328,7 @@ SELECT m FROM Member m where m.username= ?1
 query.setParameter(1 ,usernameParam);
 ```
 
-- 위치 기준 파라미터 바인딩은 웬만하면 쓰지말자. 
+- 위치 기준 파라미터 바인딩은 웬만하면 쓰지말자.
 - 순서가 바뀐다면, 다 틀어지기 때문에 안쓰는 것을 추천한다.
 
 ## 프로젝션
@@ -286,7 +337,7 @@ query.setParameter(1 ,usernameParam);
 - **프로젝션 대상: 엔티티, 임베디드 타입, 스칼라 타입(숫자, 문자등 기본 데이터 타입)**
 
 
-#### SELECT m FROM Member m -> 엔티티 프로젝션(entity projection)
+### SELECT m FROM Member m -> 엔티티 프로젝션(entity projection)
 
 ```java
 public static void main(String[] args) {
@@ -306,9 +357,9 @@ public static void main(String[] args) {
 }
 ```
 
-- result 와 같은 **엔티티 프로젝션**의 값으로(select 문의 쿼리 결과)로 나오는 값들은 전부 영속성 컨텍스트에 관리가 되어서 값을 바꾸면 변경 감지를 통해서 update 쿼리가 날라간다.  
+- result 와 같은 **엔티티 프로젝션**의 값으로(select 문의 쿼리 결과)로 나오는 값들은 전부 영속성 컨텍스트에 관리가 되어서 값을 바꾸면 변경 감지를 통해서 update 쿼리가 날라간다.
 
-#### SELECT **m.team** FROM Member m -> 엔티티 프로젝션(entity projection)
+### SELECT **m.team** FROM Member m -> 엔티티 프로젝션(entity projection)
 
 ```java
 public static void main(String[] args) {
@@ -354,7 +405,7 @@ List<Team> result = em.createQuery("select t from Member m join m.team t", Team.
 
 ***결론은 join 은 웬만하면 명시적 join 을 사용하자!!!!!***
 
-#### SELECT **m.address** FROM Member m -> 임베디드 타입 프로젝션(embedded type projection) 
+### SELECT **m.address** FROM Member m -> 임베디드 타입 프로젝션(embedded type projection)
 
 ```java
 em.createQuery("select o.address from Order o", Address.class)
@@ -377,7 +428,7 @@ Hibernate:
 - 임베디드 타입은 entity 에 소속이 되어있기 때문에 `select address from Address` 와 같이는 사용하지 못한다.
 - entity 를 명시해줘야 하는 한계가 있다.
 
-#### SELECT **m.username, m.age** FROM Member m -> 스칼라 타입 프로젝션(scalar type projection)
+### SELECT **m.username, m.age** FROM Member m -> 스칼라 타입 프로젝션(scalar type projection)
 
 ```java
 em.createQuery("select distinct m.username, m.age from Member m")
@@ -861,8 +912,8 @@ Hibernate:
 - SQL: SELECT m.*, t.* FROM Member m LEFT JOIN Team t ON m.username = t.name
 
 > 세타 조인: 아무런 연관관계가 없는 필드로 조인하는 방법
- 
-> 세타조인은 동등조인이면서 동시에 sql에서 join구문 없이 사용하는 것 
+
+> 세타조인은 동등조인이면서 동시에 sql에서 join구문 없이 사용하는 것
 
 ## 서브 쿼리
 
@@ -904,7 +955,7 @@ select m from Member m where (select count(o) from Order o where m = o.member) >
 
 - JPA는 WHERE, HAVING 절에서만 서브 쿼리 사용 가능
 - SELECT 절도 가능(하이버네이트에서 지원)
-- **FROM 절의 서브 쿼리는 현재 JPQL에서 불가능 -> Hibernate 6 부터 가능!!** 
+- **FROM 절의 서브 쿼리는 현재 JPQL에서 불가능 -> Hibernate 6 부터 가능!!**
   - **조인으로 풀 수 있으면 풀어서 해결**
   - EX) `select mm.age, mm.username from (select m.age as age, m.username as username from Member as m) as mm`
 
@@ -1035,7 +1086,7 @@ Hibernate:
             Team t1_0
 ```
 
-### 조건식 - CASE 식
+### 조건식 - COALESCE,NULLIF
 
 - **COALESCE**: 하나씩 조회해서 null이 아니면 반환
 - **NULLIF**: 두 값이 같으면 null 반환, 다르면 첫번째 값 반환
@@ -1164,8 +1215,8 @@ public class CustomFunctionContributor implements FunctionContributor {
 ```
 
 2. FunctionContributor 의 구현체를 resources/META-INF 에 등록해준다.
-   - `org.hibernate.boot.model.FunctionContributor` 파일을 생성
-   - 패키지명.생성한구현체파일명
+  - `org.hibernate.boot.model.FunctionContributor` 파일을 생성
+  - 패키지명.생성한구현체파일명
 ```
 dialect.CustomFunctionContributor
 ```
@@ -1341,7 +1392,7 @@ Hibernate:
 - 경로 탐색은 주로 SELECT, WHERE 절에서 사용하지만 묵시적 조인으로 인해 SQL의 FROM (JOIN) 절에 영향을 줌
 
 
-### 실무 조언
+### 조인에 관한 실무 조언
 
 - ***가급적 묵시적 조인 대신에 명시적 조인 사용***
 - 조인은 SQL 튜닝에 중요 포인트
@@ -1617,29 +1668,29 @@ em.find() 등을 통해서 엔티티 하나만 조회할 때는 즉시 로딩으
 ## 페치 조인의 특징과 한계
 
 1. **페치 조인 대상에는 별칭을 줄 수 없다.**
-  - 하이버네이트는 가능, 가급적 사용X
+- 하이버네이트는 가능, 가급적 사용X
 2. **둘 이상의 컬렉션은 페치 조인 할 수 없다.**
 3. **컬렉션을 페치 조인하면 페이징 API(setFirstResult, setMaxResults)를 사용할 수 없다.**
-  - **일대다 관계는 데이터 뻥튀기가 일어나기 떄문에 사용할 수 없다!!!**
-    - 일대일, 다대일 같은 단일 값 연관 필드들은 페치 조인해도 페이징 가능
-    - 하이버네이트는 경고 로그를 남기고 메모리에서 페이징(매우 위험)
+- **일대다 관계는 데이터 뻥튀기가 일어나기 떄문에 사용할 수 없다!!!**
+  - 일대일, 다대일 같은 단일 값 연관 필드들은 페치 조인해도 페이징 가능
+  - 하이버네이트는 경고 로그를 남기고 메모리에서 페이징(매우 위험)
 
 컬렉션으로 들어갔을 때 특정한 데이터만 나올 수 있는 것이 아닌 데이터 전부가 다 나와야 한다. 그것이 객체 그래프의 설계이념이다.
 
 ### 일대가 관계 페치 조인 후 페이징 API 사용 방법
 
 1. **방향을 뒤집어서 해결**: 쿼리 바꾸기 일대다는 다대일로 바꿀 수 있다.
-   - `select t from Team t join fetch t.members` -> `select m from Members m join fetch m.team` 
+  - `select t from Team t join fetch t.members` -> `select m from Members m join fetch m.team`
 2. `@BatchSize` 사용
-      - BatchSize 의 크기는 1000 이하의 크기로 적당히 크게 준다.
-      - `<property name="hibernate.default_batch_fetch_size" value="100"/>` 이렇게 값을 설정할 수도 있다.
-    - Team 을 가져올 때, Member 는 lazy loading 상태이다.
-    - lazy loading 상태인 놈을 갖고 올 때, 
-    - `select t from Team t` 에서 나온 team 의 갯수만큼 `where m1_0.TEAM_ID in(?,?)` 의 in 절에 TEAM_ID 값을 넣어준다.
-    - 만약에 150개가 있다면, 처음에 in (?,?..) 에 물음표(TEAM_ID 값)를 100개를 날리고, 두번째는 남은 50개를 날린다.
+  - BatchSize 의 크기는 1000 이하의 크기로 적당히 크게 준다.
+  - `<property name="hibernate.default_batch_fetch_size" value="100"/>` 이렇게 값을 설정할 수도 있다.
+  - Team 을 가져올 때, Member 는 lazy loading 상태이다.
+  - lazy loading 상태인 놈을 갖고 올 때,
+  - `select t from Team t` 에서 나온 team 의 갯수만큼 `where m1_0.TEAM_ID in(?,?)` 의 in 절에 TEAM_ID 값을 넣어준다.
+  - 만약에 150개가 있다면, 처음에 in (?,?..) 에 물음표(TEAM_ID 값)를 100개를 날리고, 두번째는 남은 50개를 날린다.
 3. DTO 를 만들어서 사용
-   - 이 방법도 비슷하게 정제를 해줘야 하기 때문에 만만치가 않다.
-   
+  - 이 방법도 비슷하게 정제를 해줘야 하기 때문에 만만치가 않다.
+
 ```java
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -1733,9 +1784,9 @@ team = teamB
 - 조회 대상을 특정 자식으로 한정
 - 예) Item 중에 Book, Movie를 조회해라
   - **`type(i)`**
-- **[JPQL]** 
+- **[JPQL]**
   - `select i from Item i where type(i) IN (Book, Movie)`
-- **[SQL]** 
+- **[SQL]**
   - `select i from i where i.DTYPE in ('B', 'M')`
 
 
@@ -1760,7 +1811,7 @@ team = teamB
 
 - JPQL에서 엔티티(ex: count(m))를 직접 사용하면 SQL에서 해당 **엔티티의 기본 키 값**을 사용
 - **[JPQL]**
-  - select **count(m.id)** from Member m //엔티티의 아이디를 사용 
+  - select **count(m.id)** from Member m //엔티티의 아이디를 사용
   - select **count(m)** from Member m //엔티티를 직접 사용
 - **[SQL]** (JPQL 둘다 같은 다음 SQL 실행)
   select count(m.id) as cnt from Member m
@@ -1930,16 +1981,16 @@ select m1_0.id,
 ### Named 쿼리 - 정적 쿼리
 
 **미리 정의해서 이름을 부여해두고 사용하는 JPQL**
-  - 말 그대로 query 에 이름을 부여하는 것
-  - 이름으로 query 를 불러와서 처리를 할 수 있다.
-    - 사실 어마어마한 메리트가 있다.
+- 말 그대로 query 에 이름을 부여하는 것
+- 이름으로 query 를 불러와서 처리를 할 수 있다.
+  - 사실 어마어마한 메리트가 있다.
 - 정적 쿼리
 - 어노테이션, XML에 정의
 
 **애플리케이션 로딩 시점에 초기화 후 재사용, 애플리케이션 로딩 시점에 쿼리를 검증**
-  - query 는 변하지 않는다.
-  - 애플리케이션 로딩 시점에 JPA, Hibernate 같은 애들이 이 query 를 sql 로 파싱한다.
-  - 그 다음에 **캐싱을 하고 저장하기 때문에 cost 가 거의 없다.**
+- query 는 변하지 않는다.
+- 애플리케이션 로딩 시점에 JPA, Hibernate 같은 애들이 이 query 를 sql 로 파싱한다.
+- 그 다음에 **캐싱을 하고 저장하기 때문에 cost 가 거의 없다.**
 
 ### Named 쿼리 - 어노테이션
 
@@ -2012,7 +2063,7 @@ Caused by: org.hibernate.HibernateException: Errors in named queries: Member.fin
 
 ### Spring Data JPA 의 @Query
 
-**아래의 `@Query` 어노테이션이 `@NamedQuery` 어노테이션이다. JPA 가 이것을 NamedQuery 로 등록하는 것이다.** 
+**아래의 `@Query` 어노테이션이 `@NamedQuery` 어노테이션이다. JPA 가 이것을 NamedQuery 로 등록하는 것이다.**
 
 ```java
 public interface UserRepository implements JpaRepository<User, Long> {
@@ -2025,14 +2076,14 @@ public interface UserRepository implements JpaRepository<User, Long> {
 
 ### 벌크 연산
 
-> 벌크연산이란? PK를 통해 데이터 한건을 변경하는 것을 제외한 나머지 모든 update, delete 문을 의미. 여러건을 변경하는 것 
+> 벌크연산이란? PK를 통해 데이터 한건을 변경하는 것을 제외한 나머지 모든 update, delete 문을 의미. 여러건을 변경하는 것
 
 **EX) 벌크 연산을 사용하지 않았을 때의 예시**
 - 재고가 10 개 미만인 모든 상품의 가격을 10% 상승하려면?
 - JPA 변경 감지 기능으로 실행하려면 너무 많은 SQL 실행
   - 1. 재고가 10 개 미만인 상품을 리스트로 조회한다.
   - 2. 상품 엔티티의 가격을 10% 증가한다.
-  - 3. 트랜잭션 커밋 시점에 변경감지가 동작한다. 
+  - 3. 트랜잭션 커밋 시점에 변경감지가 동작한다.
 
 **EX) 벌크 연산을 사용할 때**
 - 변경된 데이터가 100 건이라면 100 번의 UPDATE SQL 실행
