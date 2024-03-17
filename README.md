@@ -7,11 +7,9 @@
 - [4. 연관관계 매핑 기초](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/4.%20%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84%20%EB%A7%A4%ED%95%91%20%EA%B8%B0%EC%B4%88)
 - [5. 다양한 연관관계 매핑](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/5.%20%EB%8B%A4%EC%96%91%ED%95%9C%20%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84%20%EB%A7%A4%ED%95%91)
 
-# 고급 매핑
+# 6. 고급 매핑
 
 ## 상속 관계 매핑
-
-### 상속관계 매핑
 
 ![상속관계 매핑](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/91fc918c-55bd-4014-95f0-41e1c0df0395)
 
@@ -471,9 +469,8 @@ where
 
 > 결론적으로, 기본적으로 조인전략을 깔고 가지만, 정말 단순하고 데이터의 양도 얼마 안될 때는 단일 테이블 전략을 선택해도 된다. 둘 다 각자의 장단점이 있기 때문에 trade-off 가 있고, 그에 맞게 상황에 맞게 잘 선택하면 된다.
 
-# @MappedSuperclass
-
 ## @MappedSuperclass
+
 공통 매핑 정보가 필요할 때 사용(id, name)
 
 ![@MappedSuperclass](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/925e9369-0ded-4e1c-b559-722ddc87a022)
