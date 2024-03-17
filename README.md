@@ -4,7 +4,7 @@
 - [1. Hello JPA - 애플리케이션 개발 시작](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/1.%20Hello%20JPA%20-%20%EC%95%A0%ED%94%8C%EB%A6%AC%EC%BC%80%EC%9D%B4%EC%85%98%20%EA%B0%9C%EB%B0%9C%20%EC%8B%9C%EC%9E%91)
 - [2. 영속성 관리](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/2.%20%EC%98%81%EC%86%8D%EC%84%B1%20%EA%B4%80%EB%A6%AC)
 - [3. 엔티티 매핑](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/3.%20%EC%97%94%ED%8B%B0%ED%8B%B0%20%EB%A7%A4%ED%95%91#%EA%B6%8C%EC%9E%A5%ED%95%98%EB%8A%94-%EC%8B%9D%EB%B3%84%EC%9E%90-%EC%A0%84%EB%9E%B5)
-- [4. 연관관계 매핑 기초](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/4.%20%EB%8B%A4%EC%96%91%ED%95%9C%20%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84%20%EB%A7%A4%ED%95%91)
+- [4. 연관관계 매핑 기초](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/4.%20%EC%97%B0%EA%B4%80%EA%B4%80%EA%B3%84%20%EB%A7%A4%ED%95%91%20%EA%B8%B0%EC%B4%88)
 
 # 5. 다양한 연관관계 매핑
 
@@ -166,7 +166,7 @@ member table 의 TEAM_ID 를 위해서 update query 가 한번 더 날라가야 
     - 손해를 본다는 얘기는 Member 에서 Team 에 대한 참조가 필요없을 수 있는데도, Team 참조를 갖고 있어야 한다.
 - 결론적으로, 다대일 단방향, 양방향을 권장하고 그것만 사용한다면, 일대다 단방향은 몰라도 된다!!!!!!
 
-## 일대다 양방향
+### 일대다 양방향
 
 <img width="853" alt="스크린샷 2024-02-10 오후 10 40 51" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/bac06e4b-0752-4e42-a67b-4f403aee8e37">
 
@@ -353,9 +353,7 @@ public class Member {
 > 
 > 따라서 컬렉션은 항상 지연로딩으로 동작할 수 있습니다.
 
-# 다대다 [N:M]
-
-## 다대다
+## 다대다 [N:M]
 
 <img width="524" alt="스크린샷 2024-02-21 오전 1 15 09" src="https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/1b52f725-3e1f-49d5-8cdd-28d27d6692d3">
 
