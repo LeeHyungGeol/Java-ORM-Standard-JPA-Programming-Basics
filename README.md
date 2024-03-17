@@ -1,6 +1,6 @@
 # 자바 ORM 표준 JPA 프로그래밍 - 기본편
 
-[1. Hello JPA - 애플리케이션 개발 시작](#https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/1.%20Hello%20JPA%20-%20%EC%95%A0%ED%94%8C%EB%A6%AC%EC%BC%80%EC%9D%B4%EC%85%98%20%EA%B0%9C%EB%B0%9C%20%EC%8B%9C%EC%9E%91)
+[1. Hello JPA - 애플리케이션 개발 시작](https://github.com/LeeHyungGeol/Java-ORM-Standard-JPA-Programming-Basics/tree/master/1.%20Hello%20JPA%20-%20%EC%95%A0%ED%94%8C%EB%A6%AC%EC%BC%80%EC%9D%B4%EC%85%98%20%EA%B0%9C%EB%B0%9C%20%EC%8B%9C%EC%9E%91)
 
 JPA 설정하기 
 - persistence.xml
