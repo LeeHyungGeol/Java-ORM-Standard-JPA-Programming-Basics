@@ -5278,7 +5278,7 @@ Hibernate:
 
 - SQL을 보면 회원 뿐만 아니라 팀(T.*) 도 함께 SELECT
 
-- **[JPQL]** : `select m from Member m join fetch m.team t`
+- **[JPQL]** : `select m from Member m join fetch m.team`
 - **[SQL]** : `SELECT M.*, T.* FROM MEMBER M INNER JOIN TEAM T ON M.TEAM_ID=T.ID`
 
 ![객체지향 쿼리 언어5](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/af67f93e-f665-41c0-953d-c129b1f2cc2a)
@@ -5325,7 +5325,7 @@ public static void main(String[] args) {
   em.flush();
   em.clear();
 
-  String query = "select m from Member m join fetch m.team t";
+  String query = "select m from Member m join fetch m.team";
   List<Member> result = em.createQuery(query).getResultList();
 
   for (Member member : result) {
@@ -5374,7 +5374,7 @@ member = member3, teamB
 
 ```java
 public static void main(String[] args) {
-  String query = "select t from Team t join fetch t.members m";
+  String query = "select t from Team t join fetch t.members";
   List<Team> result = em.createQuery(query, Team.class).getResultList();
 
   System.out.println("result.size() = " + result.size());
@@ -5453,7 +5453,7 @@ Hibernate:
     join
         
     fetch
-        t.members m */ select
+        t.members */ select
             distinct t1_0.id,
             m1_0.TEAM_ID,
             m1_0.id,
@@ -5501,6 +5501,19 @@ team = teamB
   WHERE T.NAME = '팀A'`
 
 
+***페치 조인은 연관된 엔티티를 함께 조회함***
+
+- **[JPQL]**
+  `select t
+  from Team t **join fetch** t.members
+  where t.name = '팀A'`
+- **[SQL]**
+  `SELECT **T.*, M.***
+  FROM TEAM T
+  INNER JOIN MEMBER M ON T.ID=M.TEAM_ID
+  WHERE T.NAME = '팀A'`
+
+
 - JPQL은 결과를 반환할 때 연관관계 고려X, 단지 SELECT 절에 지정한 엔티티만 조회할 뿐
 - 여기서는 팀 엔티티만 조회하고, 회원 엔티티는 조회X
 - 페치 조인을 사용할 때만 연관된 엔티티도 함께 조회(즉시 로딩)
@@ -5510,32 +5523,94 @@ team = teamB
 
 em.find() 등을 통해서 엔티티 하나만 조회할 때는 즉시 로딩으로 설정하면 연관된 팀도 한 쿼리로 가져오도록 최적화 되지만 JPQL을 사용하면 이야기가 달라집니다. JPQL은 연관관계를 즉시로딩으로 설정하는 것과 상관없이 JPQL 자체만으로 SQL로 그대로 번역됩니다.
 
-# 페치 조인 실행 예시
+## 페치 조인의 특징과 한계
 
-- 페치 조인은 연관된 엔티티를 함께 조회함
-- **[JPQL]**
-  select t
-  from Team t **join fetch** t.members
-  where t.name = ‘팀A'
-- **[SQL]**
-  SELECT **T.*, M.***
-  FROM TEAM T
-  INNER JOIN MEMBER M ON T.ID=M.TEAM_ID
-  WHERE T.NAME = '팀A'
-
-
-# 페치 조인의 특징과 한계
-
-- **페치 조인 대상에는 별칭을 줄 수 없다.**
+1. **페치 조인 대상에는 별칭을 줄 수 없다.**
   - 하이버네이트는 가능, 가급적 사용X
-- **둘 이상의 컬렉션은 페치 조인 할 수 없다.**
-- **컬렉션을 페치 조인하면 페이징 API(setFirstResult,**
-  **setMaxResults)를 사용할 수 없다.**
-  - 일대일, 다대일 같은 단일 값 연관 필드들은 페치 조인해도 페이징 가능
-  - 하이버네이트는 경고 로그를 남기고 메모리에서 페이징(매우 위험)
+2. **둘 이상의 컬렉션은 페치 조인 할 수 없다.**
+3. **컬렉션을 페치 조인하면 페이징 API(setFirstResult, setMaxResults)를 사용할 수 없다.**
+  - **일대다 관계는 데이터 뻥튀기가 일어나기 떄문에 사용할 수 없다!!!**
+    - 일대일, 다대일 같은 단일 값 연관 필드들은 페치 조인해도 페이징 가능
+    - 하이버네이트는 경고 로그를 남기고 메모리에서 페이징(매우 위험)
 
+컬렉션으로 들어갔을 때 특정한 데이터만 나올 수 있는 것이 아닌 데이터 전부가 다 나와야 한다. 그것이 객체 그래프의 설계이념이다.
 
-# 페치 조인의 특징과 한계
+### 일대가 관계 페치 조인 후 페이징 API 사용 방법
+
+1. **방향을 뒤집어서 해결**: 쿼리 바꾸기 일대다는 다대일로 바꿀 수 있다.
+   - `select t from Team t join fetch t.members` -> `select m from Members m join fetch m.team` 
+2. `@BatchSize` 사용
+      - BatchSize 의 크기는 1000 이하의 크기로 적당히 크게 준다.
+      - `<property name="hibernate.default_batch_fetch_size" value="100"/>` 이렇게 값을 설정할 수도 있다.
+    - Team 을 가져올 때, Member 는 lazy loading 상태이다.
+    - lazy loading 상태인 놈을 갖고 올 때, 
+    - `select t from Team t` 에서 나온 team 의 갯수만큼 `where m1_0.TEAM_ID in(?,?)` 의 in 절에 TEAM_ID 값을 넣어준다.
+    - 만약에 150개가 있다면, 처음에 in (?,?..) 에 물음표(TEAM_ID 값)를 100개를 날리고, 두번째는 남은 50개를 날린다.
+3. DTO 를 만들어서 사용
+   - 이 방법도 비슷하게 정제를 해줘야 하기 때문에 만만치가 않다.
+   
+```java
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import org.hibernate.annotations.BatchSize;
+
+@Entity
+public class Team {
+  ...
+  @BatchSize(size = 100)
+  @OneToMany(mappedBy ="team")
+  private List<Member> members = new ArrayList<>();
+  ...
+}
+
+public static void main(String[] args) {
+  String query = "select t from Team t";
+  List<Team> result = em.createQuery(query, Team.class)
+    .setFirstResult(0)
+    .setMaxResults(2)
+    .getResultList();
+
+  System.out.println("result.size() = " + result.size());
+
+  for (Team t : result) {
+    System.out.println("team = " + t.getName());
+    for (Member m : t.getMembers()) {
+      System.out.println("-> member = " + m.getUsername());
+    }
+  }
+}
+```
+
+```
+Hibernate: 
+    /* select
+        t 
+    from
+        Team t */ select
+            t1_0.id,
+            t1_0.name 
+        from
+            Team t1_0 offset ? rows fetch first ? rows only
+result.size() = 2
+team = teamA
+Hibernate: 
+    select
+        m1_0.TEAM_ID,
+        m1_0.id,
+        m1_0.age,
+        m1_0.type,
+        m1_0.username 
+    from
+        Member m1_0 
+    where
+        m1_0.TEAM_ID in(?,?)
+-> member = member1
+-> member = member2
+team = teamB
+-> member = member3
+```
+
+### 페치 조인의 특징과 한계
 
 - 연관된 엔티티들을 SQL 한 번으로 조회 - 성능 최적화
 - 엔티티에 직접 적용하는 글로벌 로딩 전략보다 우선함
@@ -5544,13 +5619,18 @@ em.find() 등을 통해서 엔티티 하나만 조회할 때는 즉시 로딩으
 - 최적화가 필요한 곳은 페치 조인 적용
 
 
-# 페치 조인 - 정리
+### 페치 조인 - 정리
 
 - 모든 것을 페치 조인으로 해결할 수 는 없음
 - 페치 조인은 객체 그래프를 유지할 때 사용하면 효과적
-- 여러 테이블을 조인해서 엔티티가 가진 모양이 아닌 전혀 다른
-- 결과를 내야 하면, 페치 조인 보다는 일반 조인을 사용하고 필요
-- 한 데이터들만 조회해서 DTO로 반환하는 것이 효과적
+- 여러 테이블을 조인해서 엔티티가 가진 모양이 아닌 전혀 다른 결과를 내야 하면, 페치 조인 보다는 일반 조인을 사용하고 필요한 데이터들만 조회해서 DTO로 반환하는 것이 효과적
+
+**데이터 조회시 사용하는 일반적인 3가지 방법**
+> **1. 패치 조인 같은 것을 사용해서 엔티티를 조회해온다. 그것을 그대로 쓴다.**
+
+> **2. 패치 조인 같은 것을 사용해서 조회해온 엔티티 데이터를 애플리케인션에서 DTO 로 변환해서 사용한다.**
+
+> **3. 그냥 처음부터 jpql 작성할 때 부터 new operation 으로 DTO 로 변환해서 가져온다.**
 
 
 # JPQL - 다형성 쿼리
