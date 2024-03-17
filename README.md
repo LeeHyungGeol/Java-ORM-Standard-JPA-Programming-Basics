@@ -5834,46 +5834,101 @@ select m1_0.id,
             m1_0.TEAM_ID=?
 ```
 
-# JPQL - Named 쿼리
+## JPQL - Named 쿼리
 
+### Named 쿼리 - 정적 쿼리
 
-# Named 쿼리 - 정적 쿼리
-
-- 미리 정의해서 이름을 부여해두고 사용하는 JPQL
+**미리 정의해서 이름을 부여해두고 사용하는 JPQL**
+  - 말 그대로 query 에 이름을 부여하는 것
+  - 이름으로 query 를 불러와서 처리를 할 수 있다.
+    - 사실 어마어마한 메리트가 있다.
 - 정적 쿼리
 - 어노테이션, XML에 정의
-- 애플리케이션 로딩 시점에 초기화 후 재사용
-- 애플리케이션 로딩 시점에 쿼리를 검증
 
+**애플리케이션 로딩 시점에 초기화 후 재사용, 애플리케이션 로딩 시점에 쿼리를 검증**
+  - query 는 변하지 않는다.
+  - 애플리케이션 로딩 시점에 JPA, Hibernate 같은 애들이 이 query 를 sql 로 파싱한다.
+  - 그 다음에 **캐싱을 하고 저장하기 때문에 cost 가 거의 없다.**
 
-# Named 쿼리 - 어노테이션
+### Named 쿼리 - 어노테이션
 
 ```java
 @Entity
-@NamedQuery (
-name = "Member.findByUsername",
-query="select m from Member m where m.username = :username")
+@NamedQuery(
+  name = "Member.findByUsername",
+  query = "select m from Member m where m.username = :username"
+)
 public class Member {
 ...
 }
+
+public static void main(String[] args) {
+  List<Member> members = em.createNamedQuery("Member.findByUsername", Member.class)
+    .setParameter("username", member3.getUsername())
+    .getResultList();
+
+  for (Member member : members) {
+    System.out.println("member = " + member);
+  }
+}
 ```
+
+```
+Hibernate: 
+    /* select
+        m 
+    from
+        Member m 
+    where
+        m.username = :username */ select
+            m1_0.id,
+            m1_0.age,
+            m1_0.TEAM_ID,
+            m1_0.type,
+            m1_0.username 
+        from
+            Member m1_0 
+        where
+            m1_0.username=?
+member = Member{id=3, username='member3', age=22, type=null}
+```
+
+예상했던 데로 query 는 잘 나간다.
 
 ```java
-List<Member> resultList =
-em.createNamedQuery("Member.findByUsername", Member.class)
-.setParameter("username", "회원1")
-.getResultList();
+@NamedQuery(
+  name = "Member.findByUsername",
+  query = "select m from Members m where m.username = :username"
+)
 ```
 
-# Named 쿼리 - XML에 정의
+만약 위와 같이 query 에 문제가 있어도 문자열이기 때문에 문제를 발견하지 못하고 애플리케이션을 실행할 수도 있지만, **어노테이션에 등록이 되어 있기 때문에 애플리케이션 로딩 시점에 JPA 를 올리면서 jpql 을 sql 로 파싱하면서 캐싱을 해놓기 위해서 쿼리를 검증하기 때문에 이때 query 가 잘못 작성되어 있으면, 에러를 발생시켜준다. - 컴파일 에러를 발생**
+
+```
+Caused by: org.hibernate.HibernateException: Errors in named queries: Member.findByUsername
+  Suppressed: org.hibernate.query.sqm.UnknownEntityException: Could not resolve root entity 'Members'
+```
+
+### Named 쿼리 - XML에 정의
 
 ![객체지향 쿼리 언어10](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/c85bc0ab-2c57-46f7-9250-8771a5a80c08)
 
-# Named 쿼리 환경에 따른 설정
+### Named 쿼리 환경에 따른 설정
 
 - XML이 항상 우선권을 가진다.
 - 애플리케이션 운영 환경에 따라 다른 XML을 배포할 수 있다.
+  - 특정 상황마다 쿼리가 다르게 나가야 할 때, 쿼리도 그에 따라 달라질 수 있다. 그럴 때, 매핑 파일을 따로 배포하면 된다.
 
+### Spring Data JPA 의 @Query
+
+**아래의 `@Query` 어노테이션이 `@NamedQuery` 어노테이션이다. JPA 가 이것을 NamedQuery 로 등록하는 것이다.** 
+
+```java
+public interface UserRepository implements JpaRepository<User, Long> {
+  @Query(select u from User u where u.name = :username)
+  public findByUsername(String username)
+}
+```
 
 # JPQL - 벌크 연산
 
