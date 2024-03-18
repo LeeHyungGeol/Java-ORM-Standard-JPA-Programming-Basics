@@ -11,6 +11,39 @@
   - [경로 표현식 - 예제](#경로-표현식---예제)
   - [경로 탐색을 사용한 묵시적 조인 시 주의사항](#경로-탐색을-사용한-묵시적-조인-시-주의사항)
   - [조인에 관한 실무 조언](#조인에-관한-실무-조언)
+- [JPQL - 페치 조인(fetch join)](#jpql---페치-조인fetch-join)
+  - [페치 조인(fetch join)](#페치-조인fetch-join)
+  - [엔티티 페치 조인](#엔티티-페치-조인)
+    - [페치 조인 사용 코드](#페치-조인-사용-코드)
+  - [컬렉션 페치 조인](#컬렉션-페치-조인)
+    - [컬렉션 페치 조인 사용 코드](#컬렉션-페치-조인-사용-코드)
+  - [페치 조인과 DISTINCT](#페치-조인과-distinct)
+  - [하이버네이트 6 변경 사항](#하이버네이트-6-변경-사항)
+- [페치 조인과 일반 조인의 차이](#페치-조인과-일반-조인의-차이)
+  - [즉시 로딩(EAGER)과 패치조인](#즉시-로딩eager과-패치조인)
+- [페치 조인의 특징과 한계](#페치-조인의-특징과-한계)
+  - [일대다 관계 페치 조인 후 페이징 API 사용 방법](#일대다-관계-페치-조인-후-페이징-api-사용-방법)
+  - [페치 조인의 특징과 한계 다시 한번 정리](#페치-조인의-특징과-한계-다시-한번-정리)
+  - [페치 조인 - 정리](#페치-조인---정리)
+- [JPQL - 다형성 쿼리](#jpql---다형성-쿼리)
+  - [TYPE](#type)
+  - [TREAT(JPA 2.1)](#treatjpa-21)
+- [JPQL - 엔티티 직접 사용](#jpql---엔티티-직접-사용)
+  - [엔티티 직접 사용 - 기본 키 값](#엔티티-직접-사용---기본-키-값)
+  - [엔티티 직접 사용 - 기본 키 값 예시](#엔티티-직접-사용---기본-키-값-예시)
+  - [엔티티 직접 사용 - 외래 키 값](#엔티티-직접-사용---외래-키-값)
+- [JPQL - Named 쿼리](#jpql---named-쿼리)
+  - [Named 쿼리 - 정적 쿼리](#named-쿼리---정적-쿼리)
+  - [Named 쿼리 - 어노테이션](#named-쿼리---어노테이션)
+  - [Named 쿼리 - XML에 정의](#named-쿼리---xml에-정의)
+  - [Named 쿼리 환경에 따른 설정](#named-쿼리-환경에-따른-설정)
+  - [Spring Data JPA 의 @Query](#spring-data-jpa-의-query)
+- [JPQL - 벌크 연산](#jpql---벌크-연산)
+  - [벌크 연산](#벌크-연산)
+  - [벌크 연산 예제](#벌크-연산-예제)
+  - [벌크 연산 주의](#벌크-연산-주의)
+  - [벌크 연산 주의점 예시](#벌크-연산-주의점-예시)
+  - 
 
 
 ## JPQL - 경로 표현식
@@ -155,7 +188,7 @@ Hibernate:
 ***실무에서 정말정말 중요함***
 
 
-## 페치 조인(fetch join)
+### 페치 조인(fetch join)
 
 - SQL 조인 종류X
 - **JPQL에서 성능 최적화를 위해 제공하는 기능**
@@ -175,7 +208,7 @@ Hibernate:
 
 ![객체지향 쿼리 언어5](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/af67f93e-f665-41c0-953d-c129b1f2cc2a)
 
-### 페치 조인 사용 코드
+#### 페치 조인 사용 코드
 
 ```java
 public static void main(String[] args) {
@@ -260,7 +293,7 @@ member = member3, teamB
 
 ![객체지향 쿼리 언어6](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/879dd1c4-b17c-4371-bb4a-ee920b36a0ba)
 
-### 컬렉션 페치 조인 사용 코드
+#### 컬렉션 페치 조인 사용 코드
 
 **하이버네이트6 부터는 distinct 명령어를 사용하지 않아도 엔티티의 중복을 제거하도록 변경되었습니다.**
 
@@ -314,8 +347,8 @@ team = teamB
 
 - SQL의 DISTINCT는 중복된 결과를 제거하는 명령
 - JPQL의 DISTINCT 2가지 기능 제공
-  - 1. SQL에 DISTINCT를 추가
-  - 2. 애플리케이션에서 엔티티 중복 제거
+  - 1. **SQL에 DISTINCT를 추가**
+  - 2. **애플리케이션에서 엔티티 중복 제거**
 
 ![객체지향 쿼리 언어7](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/0919b759-5b61-431c-87d4-871e372122d4)
 
@@ -325,14 +358,11 @@ from Team t join fetch t.members
 where t.name = '팀A'
 ```
 
-- SQL에 DISTINCT를 추가하지만 데이터가 다르므로 SQL 결과에서 중복제거 실패
-
-
-### 페치 조인과 DISTINCT
+- SQL에 DISTINCT를 추가하지만 데이터가 다르므로 **SQL 결과에서** 중복제거 실패
 
 ![객체지향 쿼리 언어8](https://github.com/LeeHyungGeol/Programmers_CodingTestPractice/assets/56071088/cadc4770-caa0-49a7-9b6c-155ed6bae2b6)
 
-- DISTINCT 가 추가로 애플리케이션에서 중복 제거시도
+- DISTINCT 가 추가로 **애플리케이션에서** 중복 제거시도
 - 같은 식별자를 가진 **Team 엔티티 제거**
 
 ```
@@ -427,18 +457,18 @@ em.find() 등을 통해서 엔티티 하나만 조회할 때는 즉시 로딩으
 
 컬렉션으로 들어갔을 때 특정한 데이터만 나올 수 있는 것이 아닌 데이터 전부가 다 나와야 한다. 그것이 객체 그래프의 설계이념이다.
 
-### 일대가 관계 페치 조인 후 페이징 API 사용 방법
+### 일대다 관계 페치 조인 후 페이징 API 사용 방법
 
-1. **방향을 뒤집어서 해결**: 쿼리 바꾸기 일대다는 다대일로 바꿀 수 있다.
+**1. 방향을 뒤집어서 해결**: 쿼리 바꾸기 일대다는 다대일로 바꿀 수 있다.
 - `select t from Team t join fetch t.members` -> `select m from Members m join fetch m.team`
-2. `@BatchSize` 사용
+**2. `@BatchSize` 사용**
 - BatchSize 의 크기는 1000 이하의 크기로 적당히 크게 준다.
 - `<property name="hibernate.default_batch_fetch_size" value="100"/>` 이렇게 값을 설정할 수도 있다.
 - Team 을 가져올 때, Member 는 lazy loading 상태이다.
 - lazy loading 상태인 놈을 갖고 올 때,
 - `select t from Team t` 에서 나온 team 의 갯수만큼 `where m1_0.TEAM_ID in(?,?)` 의 in 절에 TEAM_ID 값을 넣어준다.
 - 만약에 150개가 있다면, 처음에 in (?,?..) 에 물음표(TEAM_ID 값)를 100개를 날리고, 두번째는 남은 50개를 날린다.
-3. DTO 를 만들어서 사용
+**3. DTO 를 만들어서 사용**
 - 이 방법도 비슷하게 정제를 해줘야 하기 때문에 만만치가 않다.
 
 ```java
@@ -502,7 +532,7 @@ team = teamB
 -> member = member3
 ```
 
-### 페치 조인의 특징과 한계
+### 페치 조인의 특징과 한계 다시 한번 정리
 
 - 연관된 엔티티들을 SQL 한 번으로 조회 - 성능 최적화
 - 엔티티에 직접 적용하는 글로벌 로딩 전략보다 우선함
@@ -567,7 +597,7 @@ team = teamB
   select count(m.id) as cnt from Member m
 
 
-### 엔티티 직접 사용 - 기본 키 값
+### 엔티티 직접 사용 - 기본 키 값 예시
 
 - 엔티티를 **파라미터(`where m =:member`)로** 전달
 ```java
