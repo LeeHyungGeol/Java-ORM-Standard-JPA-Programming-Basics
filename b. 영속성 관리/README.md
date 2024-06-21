@@ -163,6 +163,7 @@ tx.commit();
 ```java
 Member member5 = em.find(Member.class, 4L);
 member5.setName("em.persist() 를 선언해줘야 하는거 아니야?");
+member5.setAge(20);
 
 //em.persist(member5);
 
@@ -176,6 +177,40 @@ tx.commit();
 - 엔티티와 스냅샷을 비교한다.
 - 마치 Java Collection 에서 하는 것 처럼 update 쿼리를 직접 날리지 않아도 ***DB 값이 변경된 것 감지(Dirty Checking)*** 해서 UPDATE 쿼리를 날려준다.
 - **transaction 이 commit 하는 시점**에 값 변경을 감지하고 DB 에 반영을 해준다.
+  
+#### 변경 감지로 인해 실행된 UPDATE SQL
+
+**수정된 데이터만 반영할 것으로 예상**
+```sql
+UPDATE MEMBER
+SET
+  NAME=?
+  AGE=?
+WHERE
+  id=?
+```
+
+하지만, **JPA 의 기본 전략은 Entity 의 모든 필드를 업데이트한다.**
+
+**엔티티의 모든 필드를 수정**
+
+```sql
+UPDATE MEMBER
+SET
+  NAME=?
+  AGE=?
+WHERE
+  id=?
+```
+
+이렇게 모든 필드를 사용하면 DB 에 보내는 데이터 전송량이 증가하는 단점이 있다. 하지만.
+
+1. 모든 필드를 사용하면 update query 가 항상 같다.(물론, 바인딩 되는 데이터는 다르다)
+   **따라서, 애플리케이션 로딩 시점에 update query 를 미리 생성해두고 재사용 가능하다.**
+2. **DB 에 동일한 쿼리를 보내면 DB 는 이전에 한 번 파싱된 쿼리를 재사용할 수 있다.**
+
+이러한 장점들로 인해 모든 필드를 업데이트한다.   
+
 
 ## 플러시(flush)
 
